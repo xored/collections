@@ -1,3 +1,11 @@
+//
+// Copyright (c) 2010 xored software, Inc.
+// Licensed under Eclipse Public License version 1.0
+//
+// History:
+//   Ivan Inozemtsev Dec 6, 2010 - Initial Contribution
+//
+
 
 class ListTest : Test
 {
@@ -70,7 +78,10 @@ class ListTest : Test
     
   }
   
-  private static ConstList create(Int size)
+  **
+  ** Creates const list filled with ints from 0 to size - 1
+  ** 
+  static ConstList create(Int size)
   {
     ConstList.fromList((0..<size).toList)
   }

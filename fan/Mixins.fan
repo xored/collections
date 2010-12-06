@@ -1,3 +1,12 @@
+//
+// Copyright (c) 2010 xored software, Inc.
+// Licensed under Eclipse Public License version 1.0
+//
+// History:
+//   Ivan Inozemtsev Dec 6, 2010 - Initial Contribution
+//
+
+
 const mixin ConstStack
 {
   abstract ConstStack push(Obj? item)
@@ -11,13 +20,40 @@ const mixin ConstStack
 **************************************************************************
 ** ConstList
 **************************************************************************
-const mixin ConstList : ConstStack
+const mixin ConstList : ConstStack, Iterable
 {
   //////////////////////////////////////////////////////////////////////////
   // Overriden methods
   //////////////////////////////////////////////////////////////////////////
   override Obj? peek() { this[-1] }
   
+  override ConstList createEmpty() { empty }
+  
+  **
+  ** Default implementation uses `#size` and `#get`
+  ** 
+  override Obj? eachWhile(|Obj?, Int->Obj?| f)
+  {
+    for(i := 0; i < size; i++) 
+    {
+      result := f(this[i], i)
+      if(result != null) return result
+    }
+    return null
+  }
+  
+  **
+  ** Default implementation uses `#size` and `#get`
+  ** 
+  override Obj? eachrWhile(|Obj?, Int->Obj?| f)
+  {
+    for(i := size - 1; i >= 0; i--)
+    {
+      result := f(this[i], i)
+      if(result != null) return result
+    }
+    return null
+  }
   //////////////////////////////////////////////////////////////////////////
   // Abstract methods
   //////////////////////////////////////////////////////////////////////////
@@ -127,7 +163,26 @@ const mixin ConstList : ConstStack
     index = normalizeIndex(index)
     return index == size - 1 ? push(o) : ChunkedList.create([take(index).push(o), drop(index)])
   }
-  
+  **
+  ** Return sorted list.  If a method is provided
+  ** it implements the comparator returning -1, 0, or 1.  If the
+  ** comparator method is null then sorting is based on the
+  ** value's <=> operator (shortcut for 'compare' method).  Return this.
+  ** Throw ReadonlyErr if readonly.
+  **
+  ** Example:
+  **   s := ["candy", "ate", "he"]
+  **
+  **   s.sort
+  **   // s now evaluates to [ate, candy, he]
+  **
+  **   s.sort |Str a, Str b->Int| { return a.size <=> b.size }
+  **   // s now evaluates to ["he", "ate", "candy"]
+  **
+  virtual ConstList sort(|Obj?, Obj? -> Int|? c := null)
+  {
+    fromList(toList.sort(c)) 
+  }
   //////////////////////////////////////////////////////////////////////////
   // Creation
   //////////////////////////////////////////////////////////////////////////
