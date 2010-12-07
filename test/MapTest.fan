@@ -31,13 +31,34 @@ class MapTest : Test
     map := ConstHashMap.empty
     c1 := Collider(2, 2)
     c2 := Collider(4, 0)
-    c3 := Collider(3, 1)
+    c3 := Collider(300000, -299996)
     map = map[c1] = "foo"
     map = map[c2] = "bar"
     map = map[c3] = "baz"
     verifyEq(map[c1], "foo")
     verifyEq(map[c2], "bar")
     verifyEq(map[c3], "baz")
+    
+    map = map.remove(c1) { verifyEq(it, "foo") }
+    verifyEq(map.size, 2)
+    map = map.remove(c2) { verifyEq(it, "bar") }
+    verifyEq(map.size, 1)
+    map = map.remove(c3) { verifyEq(it, "baz") }
+    verifyEq(map.size, 0)
+    
+  }
+  
+  Void testRemove()
+  {
+    map := ConstHashMap.empty
+    count := 1000
+    count.times { map = map[it] = it.toStr }
+    size := count
+    count.times |i| 
+    {
+      verifyEq(count - i, map.size)
+      map = map.remove(i) { verifyEq(i.toStr, it) } 
+    }
   }
 }
 

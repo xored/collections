@@ -27,6 +27,17 @@ const mixin ConstMap
   @Operator abstract Obj? get(Obj? key, Obj? def := null)
   
   **
+  ** Create copy map with removed the key/value pair identified by the specified key
+  ** from the map. If the key was not mapped
+  ** then return null. If func is specified,
+  ** it will be called with a given param,
+  ** so scenario like this is possible:
+  **   Obj? val := null 
+  **   map = map.remove("key") { val = it } 
+  **
+  ** 
+  abstract This remove(Obj? key, |Obj?|? func := null)
+  **
   ** Returns all keys in this map  
   ** 
   abstract Iterable keys() 
@@ -109,6 +120,21 @@ const class ConstHashMap : ConstMap
     return result
   }
   
+  override This remove(Obj? key, |Obj? func|? f := null)
+  {
+    if(key == null) 
+    {
+      if(hasNull)
+      {
+        f?.call(nullVal)
+        return ConstHashMap(size - 1, root, false, null)
+      } else return this
+    }
+    if(root == null) return this
+    newRoot := root.remove(0, key.hash, key, f)
+    if(newRoot === root) return this
+    return ConstHashMap(size - 1, newRoot, hasNull, nullVal)
+  }
   //TODO: implement
   override Iterable keys() 
   { 
@@ -137,6 +163,8 @@ internal const mixin MapNode
   abstract Obj? find(Int level, Int hash, Obj key)
   
   abstract MapNode put(Int level, Int hash, Obj key, Obj? val, Leaf leaf)
+  
+  abstract MapNode? remove(Int level, Int hash, Obj key, |Obj?|? f)
   
   abstract Seq? keys()
   
@@ -192,6 +220,11 @@ internal const mixin MapNode
       .put(level, key1hash, key1, val1, leaf)
       .put(level, key2hash, key2, val2, leaf)
   }
+  
+  static Obj? removePair(Obj?[] objs, Int idx)
+  {
+    List.makeObj(objs.size - 2).addAll(objs[0..<2*idx]).addAll(objs[(2*idx+2)..-1])
+  }
 }
 
 internal const class CollisionNode : MapNode
@@ -227,6 +260,17 @@ internal const class CollisionNode : MapNode
     
     leaf.val = leaf
     return CollisionNode(hash, size + 1, objs.dup.add(key).add(val));
+  }
+  
+  override MapNode? remove(Int level, Int hash, Obj key, |Obj?|? f) 
+  { 
+    idx := findIndex(key)
+    if(idx == -1) return this
+    f?.call(objs[idx+1])
+
+    if(size == 1)
+      return null
+    return CollisionNode(hash, size - 1, removePair(objs, idx/2))
   }
   
   protected Int findIndex(Obj key)
@@ -268,6 +312,44 @@ internal const class ArrayNode : MapNode
       return this
     return ArrayNode(size, cloneAndSet(nodes, idx, newNode))
   }
+  
+  override MapNode? remove(Int level, Int hash, Obj key, |Obj?|? f) 
+  { 
+    idx := mask(hash, level)
+    node := nodes[idx]
+    if(node == null) return this
+    newNode := node.remove(level + 1, hash, key, f)
+    if(newNode === node) return this
+    if(newNode == null)
+    {
+      if(size < Node.nodeSize/4) return pack(idx)
+      //remove node
+      return ArrayNode(size - 1, cloneAndSet(nodes, idx, null))
+    } else return ArrayNode(size, cloneAndSet(nodes, idx, newNode))
+  }
+  
+  private MapNode? pack(Int idx) 
+  {
+    newSize := 2 * (size - 1)
+    newArray := List.makeObj(newSize) { it.size = newSize }
+    j := 1
+    bitmap := 0
+    for(i := 0; i < idx; i++)
+      if(nodes[i] != null) 
+      {
+        newArray[j] = nodes[i]
+        bitmap = bitmap.or(1.shiftl(i)) 
+      }
+    
+    for(i := idx + 1; i < nodes.size; i++)
+      if(nodes[i] != null) 
+      {
+        newArray[j] = nodes[i]
+        bitmap = bitmap.or(1.shiftl(i))
+      }
+    return BitmapNode(bitmap, newArray)
+  }
+  
   override Seq? keys() { ArrayNodeSeq.create(nodes, 0, null) }
 }
 
@@ -398,6 +480,31 @@ internal const class BitmapNode : MapNode
     leaf.val = leaf //unclear
     return BitmapNode(bitmap.or(bit), newObjs)
     
+  }
+  
+  override MapNode? remove(Int level, Int hash, Obj key, |Obj?|? f) 
+  { 
+    bit := bitpos(hash, level)
+    if(bitmap.and(bit) == 0) return this //nothing to remove
+    idx := index(bit)
+    keyOrNull := objs[2*idx]
+    valOrNode := objs[2*idx+1]
+    if(keyOrNull == null)
+    {
+      MapNode? node := valOrNode
+      node = node.remove(level + 1, hash, key, f)
+      if(node === valOrNode) return this //nothing to remove
+      if(node != null) return BitmapNode(bitmap, cloneAndSet(objs, 2 * idx + 1, node))
+      if(bitmap == bit) return null
+      return BitmapNode(bitmap.xor(bit), removePair(objs, idx))
+    }
+    if(key == keyOrNull)
+    {
+      f?.call(valOrNode)
+      //TODO: collapse
+      return BitmapNode(bitmap.xor(bit), removePair(objs, idx))
+    }
+    return this
   }
   
   override Seq? keys() { BitmapNodeSeq(objs, 0, null) }
