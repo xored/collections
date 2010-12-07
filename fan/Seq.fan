@@ -17,7 +17,7 @@ const mixin Seq : Iterable
   }
 }
 
-const class ValSeq : Seq
+const class HeadSeq : Seq
 {
   override const Obj? val
   override const Seq? next

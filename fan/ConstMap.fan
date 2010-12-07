@@ -38,10 +38,13 @@ const mixin ConstMap
   ** 
   abstract This remove(Obj? key, |Obj?|? func := null)
   **
-  ** Returns all keys in this map  
+  ** Returns all entries in this map  
   ** 
-  abstract Iterable keys() 
+  protected abstract Seq entries() 
   
+  virtual Seq keys() { KeySeq(entries) }
+  
+  virtual Seq vals() { ValSeq(entries) }
   abstract Int size()
   //////////////////////////////////////////////////////////////////////////
   // Integration methods
@@ -135,10 +138,11 @@ const class ConstHashMap : ConstMap
     if(newRoot === root) return this
     return ConstHashMap(size - 1, newRoot, hasNull, nullVal)
   }
-  //TODO: implement
-  override Iterable keys() 
+
+  override protected Seq entries() 
   { 
-    hasNull ? ValSeq(nullVal, root?.keys) : (root?.keys ?: EmptySeq.instance) 
+    result := root?.entries ?: EmptySeq.instance
+    return hasNull ? HeadSeq(MapEntry(null, nullVal), result) : result
   }
   
   
@@ -166,7 +170,7 @@ internal const mixin MapNode
   
   abstract MapNode? remove(Int level, Int hash, Obj key, |Obj?|? f)
   
-  abstract Seq? keys()
+  abstract Seq? entries()
   
   //////////////////////////////////////////////////////////////////////////
   // Bit utils
@@ -278,7 +282,7 @@ internal const class CollisionNode : MapNode
     for(i := 0; i < objs.size; i+= 2) if(key == objs[i]) return i
     return -1
   }
-  override Seq? keys() { null }
+  override Seq? entries() { BitmapNodeSeq.create(objs, 0, null) }
 }
 
 internal const class ArrayNode : MapNode
@@ -350,7 +354,7 @@ internal const class ArrayNode : MapNode
     return BitmapNode(bitmap, newArray)
   }
   
-  override Seq? keys() { ArrayNodeSeq.create(nodes, 0, null) }
+  override Seq? entries() { ArrayNodeSeq.create(nodes, 0, null) }
 }
 
 internal const class BitmapNode : MapNode
@@ -507,7 +511,7 @@ internal const class BitmapNode : MapNode
     return this
   }
   
-  override Seq? keys() { BitmapNodeSeq(objs, 0, null) }
+  override Seq? entries() { BitmapNodeSeq.create(objs, 0, null) }
   
   ** Index of a given bit in current objs array
   private Int index(Int bit) { bitCount(bitmap.and(bit-1)) }
@@ -519,17 +523,18 @@ const class BitmapNodeSeq : Seq
   const Obj?[] vals
   const Seq? nextSeq
   
-  new make(Obj?[] vals, Int start, Seq? nextSeq)
+  private new make(Obj?[] vals, Int start, Seq? nextSeq)
   {
     this.start = start
     this.vals = vals
+    this.nextSeq = nextSeq
   }
   
   override Obj? val()
   {
     if(nextSeq != null)
       return nextSeq.val
-    return vals[start]
+    return MapEntry(vals[start], vals[start+1])
   }
   
   override Seq? next()
@@ -538,7 +543,7 @@ const class BitmapNodeSeq : Seq
     return create(vals, start + 2, null)
   }
   
-  private static Seq? create(Obj?[] vals, Int i, Seq? s) {
+  static Seq? create(Obj?[] vals, Int i, Seq? s) {
     if(s != null)
       return BitmapNodeSeq(vals, i, s)
     for(j := i; j < vals.size; j+=2) 
@@ -548,7 +553,7 @@ const class BitmapNodeSeq : Seq
       MapNode? node := vals[j+1]
       if (node != null) 
       {
-        nodeSeq := node.keys()
+        nodeSeq := node.entries()
         if(nodeSeq != null) return BitmapNodeSeq(vals, j + 2, nodeSeq)
       }
     }
@@ -575,7 +580,7 @@ internal const class ArrayNodeSeq : Seq
     {
       if(nodes[j] != null) 
       {
-        ns := nodes[j].keys
+        ns := nodes[j].entries
         if(ns != null) return ArrayNodeSeq(nodes, j+1, ns)
       }
     }
@@ -584,4 +589,45 @@ internal const class ArrayNodeSeq : Seq
   
   override Obj? val() { seq.val }
   override Seq? next() { create(nodes, i, seq.next) }
+}
+
+const class MapEntry
+{
+  new make(Obj? key, Obj? val) 
+  { 
+    this.key = key
+    this.val = val 
+  }
+  const Obj? key
+  const Obj? val
+  
+}
+const class KeySeq : Seq
+{
+  private const Seq seq
+  new make(Seq seq) { this.seq = seq }
+  override Obj? val() 
+  { 
+    (seq.val as MapEntry)?.key
+  }
+  override Seq? next() 
+  { 
+    result := seq.next
+    return result == null ? null : KeySeq(result)
+  }
+}
+
+const class ValSeq : Seq
+{
+  private const Seq seq
+  new make(Seq seq) { this.seq = seq }
+  override Obj? val() 
+  { 
+    (seq.val as MapEntry)?.val 
+  }
+  override Seq? next() 
+  { 
+    result := seq.next
+    return result == null ? null : ValSeq(result)
+  }
 }

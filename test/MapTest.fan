@@ -38,6 +38,13 @@ class MapTest : Test
     verifyEq(map[c1], "foo")
     verifyEq(map[c2], "bar")
     verifyEq(map[c3], "baz")
+
+    seq := map.keys
+    keys := map.keys.toList
+    vals := map.vals.toList
+    verifyEq([c1, c2, c3].intersection(keys).size, [c1, c2, c3].union(keys).size)
+    verifyEq(["foo", "bar", "baz"].intersection(vals).size, 
+      ["foo", "bar", "baz"].union(vals).size)
     
     map = map.remove(c1) { verifyEq(it, "foo") }
     verifyEq(map.size, 2)
@@ -45,6 +52,8 @@ class MapTest : Test
     verifyEq(map.size, 1)
     map = map.remove(c3) { verifyEq(it, "baz") }
     verifyEq(map.size, 0)
+    
+    
     
   }
   
