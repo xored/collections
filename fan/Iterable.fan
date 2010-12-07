@@ -16,7 +16,7 @@ const mixin Iterable
   ** for operations that create a new list based
   ** on existing one
   ** 
-  abstract ConstList createEmpty()
+  virtual ConstList createEmpty() { ConstList.empty }
   
   **
   ** Iterate every item in the list starting with index 0 up to
@@ -254,5 +254,18 @@ const mixin Iterable
       res := c?.call(r, item) ?: r.compare(item)
       return res >= 0 ? r : item //if items are equal, use the first
     }
+  }
+  
+  
+  ** Converts iterable to Fantom list. 
+  ** Default implementation uses `#each`,
+  ** however inheritors may override in
+  ** order to provide more efficient impl
+  ** 
+  virtual Obj?[] toList()
+  {
+    result := [,]
+    each |v| { result.add(v) }
+    return result
   }
 }

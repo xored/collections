@@ -1,0 +1,15 @@
+**************************************************************************
+** title:      Collections
+** author:     Ivan Inozemtsev
+** created:    04 Dec 10
+** copyright:  Copyright (c) 2010, xored software, Inc.
+** license:    Licensed under the Eclipse Public License version 1.0
+**************************************************************************
+
+Overview [#overview]
+********************
+Collections pod provides a set of general-purpose collections.
+The key feature of these collections is that all of them are const
+clasess which return a copy on modification. The basic idea is took
+from Clojure
+

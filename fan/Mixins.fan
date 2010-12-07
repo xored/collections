@@ -27,8 +27,6 @@ const mixin ConstList : ConstStack, Iterable
   //////////////////////////////////////////////////////////////////////////
   override Obj? peek() { this[-1] }
   
-  override ConstList createEmpty() { empty }
-  
   **
   ** Default implementation uses `#size` and `#get`
   ** 
@@ -91,18 +89,6 @@ const mixin ConstList : ConstStack, Iterable
   Obj? last() { isEmpty ? null : this[-1] }
   
   Bool isEmpty() { size == 0 }
-  
-  ** Converts const list to Fantom list. 
-  ** Default implementation uses `#get`,
-  ** however inheritors may override in
-  ** order to provide more efficient impl
-  ** 
-  virtual Obj?[] toList()
-  {
-    result := [,]
-    size.times { result.add(this[it]) }
-    return result
-  }
   
   **
   ** Returns a sublist. Default implementation just creates new `SubList#` from 'this'
