@@ -36,7 +36,7 @@ internal mixin TreeUtils
     {
       if(right is Red)
       {
-        app := append(left.right(), right.left());
+        app := append(left.right, right.left);
         if(app is Red)
           return red(app.key, app.val,
                    red(left.key, left.val, left.left, app.left),
@@ -76,9 +76,9 @@ internal mixin TreeUtils
     if(left is Black) return leftBalance(key, val, left.redden, del)
     
     if(left is Red && left.right is Black)
-      return red(left.right().key, left.right().val(),
-                 leftBalance(left.key, left.val(), left.left().redden(), left.right().left()),
-                 black(key, val, left.right().right(), del))
+      return red(left.right.key, left.right.val,
+                 leftBalance(left.key, left.val, left.left.redden, left.right.left),
+                 black(key, val, left.right.right, del))
     throw Err("Invariant violation");
   }
   
@@ -105,7 +105,7 @@ internal mixin TreeUtils
     if(ins is Red && ins.left is Red)
       return red(ins.left.key, ins.left.val,
                black(key, val, left, ins.left.left),
-               black(ins.key, ins.val(), ins.left.right, ins.right))
+               black(ins.key, ins.val, ins.left.right, ins.right))
 
     return black(key, val, left, ins);
   }
