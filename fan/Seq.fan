@@ -44,10 +44,7 @@ const class ValsSeq : Seq
   override Seq? next() { vals.size == 1 ? nextSeq : ValsSeq(vals.drop(1), nextSeq) }
 }
   
-const class EmptySeq : Seq
+const mixin EmptySeq : Seq
 {
-  static const EmptySeq instance := EmptySeq()
-  private new make() {}
-  override Obj? val() { null }
-  override Seq? next() { null }
+  override Obj? eachWhile(|Obj? o, Int i->Obj?| f) { null }
 }

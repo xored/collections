@@ -3,17 +3,48 @@ class MapTest : Test
 {
   Void testTrivialPositive()
   {
-    map := ConstHashMap.empty
+    verifyTrivialPositive(ConstHashMap.empty)
+    verifyTrivialPositive(ConstTreeMap.empty)
+  }
+  
+  Void verifyTrivialPositive(ConstMap map)
+  {
+    
     map = map["foo"] = "bar"
-    verifyEq(map.keys.toList, Obj?["foo"])
     verifyEq(map["foo"], "bar")
+    verifyEq(map.keys.toList, Obj?["foo"])
     verify(map.containsKey("foo"))
   }
   
   Void test1()
   {
+    verifyTest1(ConstHashMap.empty)
+    verifyTest1(ConstTreeMap.empty)
+  }
+  
+  Void test2()
+  {
+    verifyTest2(ConstHashMap.empty)
+    verifyTest2 (ConstTreeMap.empty)
+  }
+  
+  Void verifyTest2(ConstMap map)
+  {
     count := 100
-    map := ConstHashMap.empty
+    count.times
+    {
+      map = map[count - it] = it.toStr
+      verifyEq(map.size, it+1)
+    }
+    count.times
+    {
+      verifyEq(map[count - it], it.toStr)
+    }
+    verifyEq(map.keys.toList.sort, Obj?[,].addAll((1..count).toList))
+  }
+  Void verifyTest1(ConstMap map)
+  {
+    count := 100
     count.times
     {
       map = map[it] = it.toStr
@@ -25,10 +56,14 @@ class MapTest : Test
     }
     verifyEq(map.keys.toList.sort, Obj?[,].addAll((0..<count).toList))
   }
-  
   Void testCollision()
   {
-    map := ConstHashMap.empty
+    verifyCollision(ConstHashMap.empty)
+    verifyCollision(ConstTreeMap.empty)
+  }
+  
+  Void verifyCollision(ConstMap map)
+  {
     c1 := Collider(2, 2)
     c2 := Collider(4, 0)
     c3 := Collider(300000, -299996)
@@ -52,9 +87,6 @@ class MapTest : Test
     verifyEq(map.size, 1)
     map = map.remove(c3) { verifyEq(it, "baz") }
     verifyEq(map.size, 0)
-    
-    
-    
   }
   
   Void testRemove()
@@ -68,6 +100,34 @@ class MapTest : Test
       verifyEq(count - i, map.size)
       map = map.remove(i) { verifyEq(i.toStr, it) } 
     }
+  }
+  
+  Void testRandomFill()
+  {
+    verifyRandomFill(ConstHashMap.empty, 10000)
+    verifyRandomFill(ConstTreeMap.empty, 10000)
+  }
+  Void verifyRandomFill(ConstMap map, Int size)
+  {
+    rand := randomVector(size)
+    rand.each |v,i|
+    { 
+      verifyEq(map.size, i)
+      map = map[v] = v
+    }
+    rand.each |v,i|
+    {
+      verifyEq(map.size, size - i)
+      verifyEq(map[v], v)
+      map = map.remove(v)
+    }
+  }
+  
+  Int[] randomVector(Int count) 
+  { 
+    result := [,]
+    count.times { result.add(Int.random) }
+    return result
   }
 }
 

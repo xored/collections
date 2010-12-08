@@ -3,7 +3,7 @@ class BitcountTest : Test
 {
   Void test1()
   {
-    1000.times 
+    10.times 
     { 
       64.times 
       { 

@@ -16,6 +16,8 @@ const mixin ConstStack
   abstract ConstStack pop()
   
   abstract Int size()
+  
+  virtual Bool isEmpty() { size == 0 }
 }
 **************************************************************************
 ** ConstList
@@ -87,8 +89,6 @@ const mixin ConstList : ConstStack, Iterable
   Obj? first() { isEmpty ? null : this[0] }
   
   Obj? last() { isEmpty ? null : this[-1] }
-  
-  Bool isEmpty() { size == 0 }
   
   **
   ** Returns a sublist. Default implementation just creates new `SubList#` from 'this'

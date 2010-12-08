@@ -6,74 +6,6 @@
 //   Ivan Inozemtsev Dec 7, 2010 - Initial Contribution
 //
 
-const mixin ConstMap
-{
-  //////////////////////////////////////////////////////////////////////////
-  // Abstract methods
-  //////////////////////////////////////////////////////////////////////////
-  abstract Bool containsKey(Obj? key)
-  
-  **
-  ** Associates given key with value.
-  ** This method returns 'This' because return type depends
-  ** on concrete impl - TreeMap should return TreeMap and so on
-  ** 
-  @Operator abstract This set(Obj? key, Obj? val)
-  
-  **
-  ** Returns value at given index. If item is not found,
-  ** returns def. If def is null, returns value at null key
-  ** 
-  @Operator abstract Obj? get(Obj? key, Obj? def := null)
-  
-  **
-  ** Create copy map with removed the key/value pair identified by the specified key
-  ** from the map. If the key was not mapped
-  ** then return null. If func is specified,
-  ** it will be called with a given param,
-  ** so scenario like this is possible:
-  **   Obj? val := null 
-  **   map = map.remove("key") { val = it } 
-  **
-  ** 
-  abstract This remove(Obj? key, |Obj?|? func := null)
-  **
-  ** Returns all entries in this map  
-  ** 
-  protected abstract Seq entries() 
-  
-  virtual Seq keys() { KeySeq(entries) }
-  
-  virtual Seq vals() { ValSeq(entries) }
-  abstract Int size()
-  //////////////////////////////////////////////////////////////////////////
-  // Integration methods
-  //////////////////////////////////////////////////////////////////////////
-  **
-  ** Converts const map to Fantom map. The value at null key
-  ** goes to def field
-  ** 
-  Obj:Obj? toMap()
-  {
-    result := [:]
-    if(this.containsKey(null)) result.def = this[null]
-    //TODO: implement
-    return result
-  }
-  
-  **
-  ** Creates const map from Fantom map. The def field goes to 
-  ** null key
-  ** 
-  static ConstMap fromMap(Obj:Obj? map)
-  {
-    result := ConstHashMap.empty
-    map.each |v, k| { result = result[k] = v }
-    if(map.def != null) result = result[null] = map.def
-    return result
-  }
-  
-}
 const class ConstHashMap : ConstMap
 {
   //////////////////////////////////////////////////////////////////////////
@@ -139,9 +71,9 @@ const class ConstHashMap : ConstMap
     return ConstHashMap(size - 1, newRoot, hasNull, nullVal)
   }
 
-  override protected Seq entries() 
+  override protected MapSeq entries() 
   { 
-    result := root?.entries ?: EmptySeq.instance
+    result := root?.entries ?: MapSeq.empty
     return hasNull ? HeadSeq(MapEntry(null, nullVal), result) : result
   }
   
@@ -366,7 +298,7 @@ internal const class BitmapNode : MapNode
   
   const Int bitmap
   **
-  ** Even indices contains either keys (and in this case item at corresponding odd index contains
+  ** Even indices contain either keys (and in this case item at corresponding odd index contains
   ** val) or nulls (in this case odd index contains child node)
   ** 
   const Obj?[] objs
@@ -517,11 +449,11 @@ internal const class BitmapNode : MapNode
   private Int index(Int bit) { bitCount(bitmap.and(bit-1)) }
 }
 
-const class BitmapNodeSeq : Seq
+const class BitmapNodeSeq : MapSeq
 {
   const Int start
   const Obj?[] vals
-  const Seq? nextSeq
+  const MapSeq? nextSeq
   
   private new make(Obj?[] vals, Int start, Seq? nextSeq)
   {
@@ -530,20 +462,20 @@ const class BitmapNodeSeq : Seq
     this.nextSeq = nextSeq
   }
   
-  override Obj? val()
+  override MapEntry? val()
   {
     if(nextSeq != null)
       return nextSeq.val
     return MapEntry(vals[start], vals[start+1])
   }
   
-  override Seq? next()
+  override MapSeq? next()
   {
     if(nextSeq != null) return create(vals, start, nextSeq.next)
     return create(vals, start + 2, null)
   }
   
-  static Seq? create(Obj?[] vals, Int i, Seq? s) {
+  static MapSeq? create(Obj?[] vals, Int i, Seq? s) {
     if(s != null)
       return BitmapNodeSeq(vals, i, s)
     for(j := i; j < vals.size; j+=2) 
@@ -561,19 +493,19 @@ const class BitmapNodeSeq : Seq
   }
 }
 
-internal const class ArrayNodeSeq : Seq
+internal const class ArrayNodeSeq : MapSeq
 {
   const MapNode?[] nodes
   const Int i
-  const Seq seq
-  private new make(MapNode?[] nodes, Int i, Seq seq)
+  const MapSeq seq
+  private new make(MapNode?[] nodes, Int i, MapSeq seq)
   {
     this.nodes = nodes
     this.i = i
     this.seq = seq
   }
   
-  static Seq? create(MapNode?[] nodes, Int i, Seq? seq)
+  static MapSeq? create(MapNode?[] nodes, Int i, Seq? seq)
   {
     if(seq != null) return ArrayNodeSeq(nodes, i, seq)
     for(j := i; j < nodes.size; j++)
@@ -587,8 +519,8 @@ internal const class ArrayNodeSeq : Seq
     return null
   }
   
-  override Obj? val() { seq.val }
-  override Seq? next() { create(nodes, i, seq.next) }
+  override MapEntry? val() { seq.val }
+  override MapSeq? next() { create(nodes, i, seq.next) }
 }
 
 const class MapEntry
@@ -602,14 +534,26 @@ const class MapEntry
   const Obj? val
   
 }
+
+abstract const class MapSeq : Seq
+{
+  abstract override MapEntry? val()
+  abstract override MapSeq? next()
+  static const MapSeq empty := EmptyMapSeq.instance
+}
+
+internal const class EmptyMapSeq : MapSeq, EmptySeq
+{
+  private new make() {}
+  static const EmptyMapSeq instance := EmptyMapSeq()
+  override const MapEntry? val := null
+  override const MapSeq? next := null
+}
 const class KeySeq : Seq
 {
-  private const Seq seq
-  new make(Seq seq) { this.seq = seq }
-  override Obj? val() 
-  { 
-    (seq.val as MapEntry)?.key
-  }
+  private const MapSeq seq
+  new make(MapSeq seq) { this.seq = seq }
+  override Obj? val() { seq.val?.key }
   override Seq? next() 
   { 
     result := seq.next
