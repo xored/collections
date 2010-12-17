@@ -10,6 +10,6 @@ Overview [#overview]
 ********************
 Collections pod provides a set of general-purpose collections.
 The key feature of these collections is that all of them are const
-clasess which return a copy on modification. The basic idea is took
+clasess which return a copy on modification. The basic idea is taken
 from Clojure
 

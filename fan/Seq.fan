@@ -1,20 +1,32 @@
-const mixin Seq : Iterable
+//
+// Copyright (c) 2010 xored software, Inc.
+// Licensed under Eclipse Public License version 1.0
+//
+// History:
+//   ivaninozemtsev Dec 6, 2010 - Initial Contribution
+//   Ilya Sherenkov Dec 17, 2010 - Update
+//
+
+const mixin Seq : ConstColl
 {
   abstract Obj? val()
   
   abstract Seq? next()
   
+  override ConstColl convertFromList(Obj?[] list) { ValsSeq(ConstList.fromList(list), null) }   
+
   override Obj? eachWhile(|Obj?, Int -> Obj?| func)
   {
-    doEachWhile(0, func)
+    index := 0
+    for (Seq? s := this; s!=null; index++)
+    {
+      result := func(s.val, index)
+      if (result != null) return result
+      s = s.next
+    }
+    return null
   }
   
-  protected Obj? doEachWhile(Int index, |Obj?, Int -> Obj?| func)
-  {
-    result := func(val, index)
-    if(result != null) return result
-    return next?.doEachWhile(index++, func)
-  }
 }
 
 const class HeadSeq : Seq

@@ -4,6 +4,7 @@
 //
 // History:
 //   Ivan Inozemtsev Dec 6, 2010 - Initial Contribution
+//   Ilya Sherenkov Dec 17, 2010 - Update
 //
 
 
@@ -22,12 +23,14 @@ const mixin ConstStack
 **************************************************************************
 ** ConstList
 **************************************************************************
-const mixin ConstList : ConstStack, Iterable
+const mixin ConstList : ConstStack, ConstColl
 {
   //////////////////////////////////////////////////////////////////////////
   // Overriden methods
   //////////////////////////////////////////////////////////////////////////
   override Obj? peek() { this[-1] }
+  
+  override ConstColl convertFromList(Obj?[] list) { fromList(list) }
   
   **
   ** Default implementation uses `#size` and `#get`
@@ -84,7 +87,7 @@ const mixin ConstList : ConstStack, Iterable
   **
   ** Adds item to the end of the list. Same as `#push`
   ** 
-  ConstList add(Obj? item) { push(item) }
+  This add(Obj? item) { push(item) }
   
   Obj? first() { isEmpty ? null : this[0] }
   

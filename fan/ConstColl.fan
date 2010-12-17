@@ -4,31 +4,32 @@
 //
 // History:
 //   Ivan Inozemtsev Dec 6, 2010 - Initial Contribution
+//   Ilya Sherenkov Dec 17, 2010 - Update
 //
+
 
 **
 ** Provides lot of list-like methods like `#findAll`, `#exclude` and so on
 ** 
-const mixin Iterable
+const mixin ConstColl
 {
+
   **
-  ** Creates empty list. It is necessary
-  ** for operations that create a new list based
-  ** on existing one
-  ** 
-  virtual ConstList createEmpty() { ConstList.empty }
-  
-  **
-  ** Iterate every item in the list starting with index 0 up to
+  ** Iterates every item in the collection starting with index 0 up to
   ** size-1 until the function returns non-null.  If function
   ** returns non-null, then break the iteration and return the
   ** resulting object.  Return null if the function returns
   ** null for every item.  
   **
   abstract Obj? eachWhile(|Obj?, Int -> Obj?| func)
+
+  ** 
+  ** Handles the convertion from a Fantom list for the map/findAll mixin implementations
+  ** 
+  abstract ConstColl convertFromList(Obj?[] list)
   
   **
-  ** Call the specified function for every item in the list starting
+  ** Calls the specified function for every item in the list starting
   ** with index 0 and incrementing up to size-1.  This method is
   ** readonly safe.
   **
@@ -70,6 +71,7 @@ const mixin Iterable
   ** prints:
   **   a b 0
   **   c null 2
+  ** 
   Void eachn(Int count, Func f)
   {
     acc := Obj?[,]
@@ -100,11 +102,11 @@ const mixin Iterable
   **   list := [3, 4, 5]
   **   list.map |Int v->Int| { return v*2 } => [6, 8, 10]
   **
-  ConstList map(|Obj?, Int -> Obj?| f)
+  ConstColl map(|Obj?, Int -> Obj?| f)
   {
-    result := createEmpty
-    each |v, i| { result = result.add(f(v, i)) }
-    return result
+    result := [,]
+    each |v, i| { result.add(f(v, i)) }
+    return convertFromList(result)
   }
   
   **
@@ -166,16 +168,16 @@ const mixin Iterable
   **   list := [0, 1, 2, 3, 4]
   **   list.exclude |Int v->Bool| { return v%2==0 } => [1, 3]
   **
-  ConstList exclude(|Obj?, Int -> Bool| f)
+  ConstColl exclude(|Obj?, Int -> Bool| f)
   {
     findAll |v,i| { !f(v, i) }
   }
   
-  ConstList findAll(|Obj?, Int -> Bool| f)
+  ConstColl findAll(|Obj?, Int -> Bool| f)
   {
-    result := createEmpty
+    result := [,]
     each |v, i| { if(f(v, i)) result = result.add(v) }
-    return result
+    return convertFromList(result)
   }
 
   **
@@ -212,7 +214,7 @@ const mixin Iterable
   **   list := ["a", 3, "foo", 5sec, null]
   **   list.findType(Str#) => Str["a", "foo"]
   **
-  ConstList findType(Type t) { findAll { it?.typeof?.fits(t) ?: false } }
+  ConstColl findType(Type t) { findAll { it?.typeof?.fits(t) ?: false } }
   
   **
   ** Return the minimum value of the list.  If c is provided, then it
@@ -257,7 +259,7 @@ const mixin Iterable
   }
   
   
-  ** Converts iterable to Fantom list. 
+  ** Converts collection to Fantom list. 
   ** Default implementation uses `#each`,
   ** however inheritors may override in
   ** order to provide more efficient impl

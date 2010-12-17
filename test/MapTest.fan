@@ -1,3 +1,11 @@
+//
+// Copyright (c) 2010 xored software, Inc.
+// Licensed under Eclipse Public License version 1.0
+//
+// History:
+//   Ivan Inozemtsev Dec 6, 2010 - Initial Contribution
+//   Ilya Sherenkov Dec 17, 2010 - Update
+//
 
 class MapTest : Test
 {
@@ -129,6 +137,46 @@ class MapTest : Test
     count.times { result.add(Int.random) }
     return result
   }
+
+  Void testNullKey()
+  {
+    map := ConstHashMap.empty
+    map = map[1] = 1
+    map = map[2] = 2
+    map = map[3] = 3
+    map = map[null] = null
+    verifyEq(map.keys.toList.size, 4)
+  }
+  
+  Void testToMap()
+  {
+    verifyTestToMap(ConstHashMap.empty)
+    verifyTestToMap(ConstTreeMap.empty)
+  }
+  Void verifyTestToMap(ConstMap map)
+  {
+    map = map[1] = 1
+    map = map[2] = 2
+    map = map[3] = 3
+    fMap := map.toMap
+    verifyEq(fMap, Obj:Obj?[1:1,2:2,3:3])
+  }
+
+  Void testEach()
+  {
+    verifyTestEach(ConstHashMap.empty)
+    verifyTestEach(ConstTreeMap.empty)
+  }
+  Void verifyTestEach(ConstMap map)
+  {
+    N := 100000;
+    N.times { map = map[it] = it }
+    verifyEq(map.findAll |x| { x->key != 1 }.toList.size, N - 1)
+    sum := 0
+    map.each |x| { sum += (Int) x->key }
+    verifyEq(sum, (N) * (N - 1) / 2)
+  }
+  
 }
 
 internal const class Collider

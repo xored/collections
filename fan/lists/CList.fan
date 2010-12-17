@@ -4,7 +4,7 @@
 //
 // History:
 //   Ivan Inozemtsev Dec 6, 2010 - Initial Contribution
-//
+//   Ilya Sherenkov Dec 17, 2010 - Update
 
 
 **************************************************************************

@@ -5,7 +5,7 @@ class Build : build::BuildPod
   {
     podName = "collections"
     summary = ""
-    srcDirs = [`test/`, `fan/`, `fan/treemap/`]
+    srcDirs = [`test/`, `fan/`, `fan/treeMap/`, `fan/sets/`, `fan/lists/`, `fan/hashMap/`]
     depends = ["sys 1.0"]
   }
 }

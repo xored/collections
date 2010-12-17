@@ -4,6 +4,7 @@
 //
 // History:
 //   Ivan Inozemtsev Dec 7, 2010 - Initial Contribution
+//   Ilya Sherenkov Dec 17, 2010 - Update
 //
 
 internal const class ConstTreeMap : ConstMap, TreeUtils
@@ -47,9 +48,11 @@ internal const class ConstTreeMap : ConstMap, TreeUtils
     entryAt(key ?: throw nullKeyErr)?.val ?: def
   }
   
-  override Bool containsKey(Obj? key) { entryAt(key ?: throw nullKeyErr) != null }
+  override Bool containsKey(Obj? key) { key == null ? false : entryAt(key) != null }
   
-  override MapSeq entries() { root == null ? MapSeq.empty : TreeNodeSeq.create(root, true) }
+  override MapSeq entries() { entriesOrdered(true) }
+  
+  MapSeq entriesOrdered(Bool asc) { root == null ? MapSeq.empty : TreeNodeSeq.create(root, asc) }
   
   override This remove(Obj? key, |Obj?|? callback := null) 
   { 

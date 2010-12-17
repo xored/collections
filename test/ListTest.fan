@@ -20,12 +20,18 @@ class ListTest : Test
     list := ConstList.fromList([1,2,3])
     verifyEq(Obj?[1,2,3], list.toList)
   }
-  
+
   Void testSimple3()
   {
     etalon := Obj?[,]
     131072.times { etalon.add(it) }
     verifyEq(etalon, ConstList.fromList(etalon).toList)
+  }
+
+  Void testSimple4()
+  {
+    list := ConstList.fromList([1..100])
+    verifyEq(Obj?[1..100], list.toList)
   }
   
   Void testSet()
