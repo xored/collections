@@ -6,7 +6,7 @@
 //   Ivan Inozemtsev Dec 6, 2010 - Initial Contribution
 //   Ilya Sherenkov Dec 17, 2010 - Update
 
-const class ConstHashMap : ConstMap
+const class ConstHashMap : IConstMap
 {
   //////////////////////////////////////////////////////////////////////////
   // Constructor and fields
@@ -24,6 +24,12 @@ const class ConstHashMap : ConstMap
     this.nullVal = nullVal
   }
   
+  override ConstHashMap convertFromList(Obj?[] list) 
+  {  
+    result := ConstHashMap()
+    return result.addAll(list)
+  }   
+
   //////////////////////////////////////////////////////////////////////////
   // Public API
   //////////////////////////////////////////////////////////////////////////
@@ -71,10 +77,10 @@ const class ConstHashMap : ConstMap
     return ConstHashMap(size - 1, newRoot, hasNull, nullVal)
   }
 
-  override protected MapSeq entries() 
+  override MapSeq entries() 
   { 
     result := root?.entries ?: MapSeq.empty
-    return hasNull ? NullHeadMapSeq(nullVal, result) : result
+    return hasNull ? NullHeadMapEntrySeq(nullVal, result) : result
   }
   
   

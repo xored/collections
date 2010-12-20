@@ -8,13 +8,13 @@
 //
 
 
-const mixin ConstStack
+const mixin IConstStack
 {
-  abstract ConstStack push(Obj? item)
+  abstract IConstStack push(Obj? item)
   
   abstract Obj? peek()
   
-  abstract ConstStack pop()
+  abstract IConstStack pop()
   
   abstract Int size()
   
@@ -23,14 +23,14 @@ const mixin ConstStack
 **************************************************************************
 ** ConstList
 **************************************************************************
-const mixin ConstList : ConstStack, ConstColl
+const mixin IConstList : IConstStack, IConstColl
 {
   //////////////////////////////////////////////////////////////////////////
   // Overriden methods
   //////////////////////////////////////////////////////////////////////////
   override Obj? peek() { this[-1] }
   
-  override ConstColl convertFromList(Obj?[] list) { fromList(list) }
+  abstract IConstList empty()
   
   **
   ** Default implementation uses `#size` and `#get`
@@ -74,12 +74,12 @@ const mixin ConstList : ConstStack, ConstColl
   ** Sets item
   ** 
   @Operator
-  abstract ConstList set(Int index, Obj? item)
+  abstract IConstList set(Int index, Obj? item)
   
   **
   ** Overriding to change return type
   ** 
-  override abstract ConstList push(Obj? o)
+  override abstract IConstList push(Obj? o)
   //////////////////////////////////////////////////////////////////////////
   // Convenience methods
   //////////////////////////////////////////////////////////////////////////
@@ -94,64 +94,48 @@ const mixin ConstList : ConstStack, ConstColl
   Obj? last() { isEmpty ? null : this[-1] }
   
   **
-  ** Returns a sublist. Default implementation just creates new `SubList#` from 'this'
+  ** Returns a sublist. 
   ** 
-  @Operator virtual ConstList getRange(Range r)
-  {
-    r = normalizeRange(r)
-    return SubList(this, r.start, r.end+1)
-  }
-
+  @Operator abstract IConstList getRange(Range r)
   
   **
   ** Takes first 'size.min(count)' items from the list
   ** Default implementation routes to #getRange
   ** 
-  virtual ConstList take(Int count) { this[0..<count.min(size)] }
+  virtual IConstList take(Int count) { this[0..<count.min(size)] }
   
   **
   ** Drops first 'count' items from the list
   ** If count is greater size, returns empty list
   ** 
-  virtual ConstList drop(Int count) { count >= size ? empty : this[count..-1] }
+  virtual IConstList drop(Int count) { count >= size ? empty : this[count..-1] }
   
   **
   ** Concatenates this with a given list
-  ** This method has been added to distinguish from `#addAll` by arg type
-  ** Default implementation just creates ChunkedList
   ** 
-  virtual ConstList concat(ConstList list) 
-  {
-    ChunkedList.create([this, list])
-  }
-  
+  abstract IConstList concat(IConstList list) 
+
   **
   ** Adds all elements from a given list 
   ** Default implementation just adds all items one-by-one,
   ** though inheritors can override in order to provide
   ** more efficient impl
   ** 
-  virtual ConstList addAll(Obj?[] objs)
+  virtual IConstList addAll(Obj?[] objs)
   {
-    objs.reduce(this) |ConstList r, Obj? item -> ConstList| { r.add(item) }
+    objs.reduce(this) |IConstList r, Obj? item -> IConstList| { r.add(item) }
   }
   
   **
-  ** Removes item at specified index. 
-  ** Default implementation creates chunked list, inheritors
-  ** can override in order to provide better performance
+  ** Removes item at specified index.
+  **  
+  abstract IConstList removeAt(Int index)
+
+  **
+  ** Inserts item at specified index. 
   ** 
-  virtual ConstList removeAt(Int index)
-  {
-    index = normalizeIndex(index)
-    return index == size - 1 ? pop : ChunkedList.create([take(index), drop(index + 1)])
-  }
+  abstract IConstList insert(Int index, Obj? o)
   
-  virtual ConstList insert(Int index, Obj? o)
-  {
-    index = normalizeIndex(index)
-    return index == size - 1 ? push(o) : ChunkedList.create([take(index).push(o), drop(index)])
-  }
   **
   ** Return sorted list.  If a method is provided
   ** it implements the comparator returning -1, 0, or 1.  If the
@@ -168,20 +152,10 @@ const mixin ConstList : ConstStack, ConstColl
   **   s.sort |Str a, Str b->Int| { return a.size <=> b.size }
   **   // s now evaluates to ["he", "ate", "candy"]
   **
-  virtual ConstList sort(|Obj?, Obj? -> Int|? c := null)
+  virtual IConstList sort(|Obj?, Obj? -> Int|? c := null)
   {
-    fromList(toList.sort(c)) 
+    convertFromList(toList.sort(c)) 
   }
-  //////////////////////////////////////////////////////////////////////////
-  // Creation
-  //////////////////////////////////////////////////////////////////////////
-  static const ConstList empty := CList.emptyCList
-  static ConstList fromList(Obj?[] list) 
-  { 
-    //list.reduce(empty) |r, e| { r->push(e) } 
-    CList.createFromList(list)
-  }
-  
   
   //////////////////////////////////////////////////////////////////////////
   // Internal utility methods
@@ -210,4 +184,10 @@ const mixin ConstList : ConstStack, ConstColl
 
   protected IndexErr err(Int i) { IndexErr("Index $i is not in 0..<$size range") }
 
+  // covariance overrides
+  override IConstList map(|Obj?, Int -> Obj?| f)  { (IConstList) IConstColl.super.map(f) }
+  override IConstList exclude(|Obj?, Int -> Bool| f) { (IConstList) IConstColl.super.exclude(f) }
+  override IConstList findAll(|Obj?, Int -> Bool| f) { (IConstList) IConstColl.super.findAll(f) }
+  override IConstList findType(Type t) { (IConstList) IConstColl.super.findType(t) }
+  
 }

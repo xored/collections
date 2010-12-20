@@ -7,13 +7,13 @@
 //   Ilya Sherenkov Dec 17, 2010 - Update
 //
 
-internal const class ConstTreeMap : ConstMap, TreeUtils
+const class ConstTreeMap : IConstMap, Sorted 
 {
   //////////////////////////////////////////////////////////////////////////
   // Constructor and fields
   //////////////////////////////////////////////////////////////////////////
   ** Key comparer, if null, then `Obj.compare` is used
-  const |Obj, Obj -> Int|? comparator
+  override const |Obj, Obj -> Int|? comparator
   private const TreeNode? root
   override const Int size
   new make(|Obj, Obj -> Int|? comparator := null) : this.makeTree(0, null, comparator) {}
@@ -24,6 +24,18 @@ internal const class ConstTreeMap : ConstMap, TreeUtils
     this.comparator = comparator
     this.size = size
   }
+  
+  override ConstTreeMap convertFromList(Obj?[] list) 
+  {  
+    result := ConstTreeMap(comparator)
+    return result.addAll(list)
+  }   
+
+  // eachrWhile optimization
+  override Obj? eachrWhile(|Obj?, Int -> Obj?| func)
+  {
+    return sorted(false).eachWhile(func)
+  }  
   
   static ConstTreeMap empty(|Obj, Obj -> Int|? c := null) { ConstTreeMap(c) } 
   //////////////////////////////////////////////////////////////////////////
@@ -50,9 +62,9 @@ internal const class ConstTreeMap : ConstMap, TreeUtils
   
   override Bool containsKey(Obj? key) { key == null ? false : entryAt(key) != null }
   
-  override MapSeq entries() { entriesOrdered(true) }
+  override MapSeq entries() { sorted(true) }
   
-  MapSeq entriesOrdered(Bool asc) { root == null ? MapSeq.empty : TreeNodeSeq.create(root, asc) }
+  override MapSeq sorted(Bool asc) { root == null ? MapSeq.empty : TreeNodeSeq.create(root, asc) }
   
   override This remove(Obj? key, |Obj?|? callback := null) 
   { 
@@ -98,7 +110,7 @@ internal const class ConstTreeMap : ConstMap, TreeUtils
     if(c == 0)
     {
       found.val = node
-      return append(node.left, node.right)
+      return TreeUtils.append(node.left, node.right)
     }
     
     del := c < 0 ? removeNode(node.left, key, found) : removeNode(node.right, key, found);
@@ -107,17 +119,17 @@ internal const class ConstTreeMap : ConstMap, TreeUtils
     if(c < 0)
     {
       return node.left is Black ? 
-        balanceLeftDel(node.key, node.val, del, node.right) :
-        red(node.key, node.val, del, node.right)
+        TreeUtils.balanceLeftDel(node.key, node.val, del, node.right) :
+        TreeUtils.red(node.key, node.val, del, node.right)
     }
   
     return node.right is Black ?  
-      balanceRightDel(node.key, node.val, node.left, del) :
-      red(node.key, node.val, node.left, del)
+      TreeUtils.balanceRightDel(node.key, node.val, node.left, del) :
+      TreeUtils.red(node.key, node.val, node.left, del)
   }
   private TreeNode replace(TreeNode? root, Obj key, Obj? val) 
   { 
-    throw noImpl 
+    throw TreeUtils.noImpl 
   }
   
   private const Err nullKeyErr := Err("Null keys are not supported")

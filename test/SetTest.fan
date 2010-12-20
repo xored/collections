@@ -13,7 +13,7 @@ class SetTest : Test
     doTestSimple(ConstTreeSet())
     doTestSimple(ConstHashSet())
   }
-  Void doTestSimple(ConstSet emptySet)
+  Void doTestSimple(IConstSet emptySet)
   {
     set := emptySet.add(1)
     verifyEq(Obj?[1], set.toList)
@@ -24,20 +24,20 @@ class SetTest : Test
     doTestSimple2(ConstTreeSet())
     doTestSimple2(ConstHashSet())
   }
-  Void doTestSimple2(ConstSet emptySet)
+  Void doTestSimple2(IConstSet emptySet)
   {
     set := emptySet.addAll([1,2,3])
     verifyEq(Obj?[1,2,3], set.toList)
   }
   
-  Void testOrdered()
+  Void testSorted()
   {
-    set := ConstTreeSet.fromList([1,2,3])
-    verifyEq(Obj?[3,2,1], set.itemsOrdered(false).toList)
-    verifyEq(set.itemsOrdered(true).toList, set.itemsOrdered(false).toList.reverse)
+    set := ConstTreeSet().addAll([1,2,3])
+    verifyEq(Obj?[3,2,1], set.sorted(false).toList)
+    verifyEq(set.sorted(true).toList, set.sorted(false).toList.reverse)
     
-    set = ConstTreeSet.fromList([1])
-    verifyEq(set.itemsOrdered(true).toList, set.itemsOrdered(false).toList)
+    set = ConstTreeSet().addAll([1])
+    verifyEq(set.sorted(true).toList, set.sorted(false).toList)
   }
 
   Void testSimple3()
@@ -45,7 +45,7 @@ class SetTest : Test
     doTestSimple3(ConstTreeSet())
     doTestSimple3(ConstHashSet())
   }
-  Void doTestSimple3(ConstSet emptySet)
+  Void doTestSimple3(IConstSet emptySet)
   {
     set := emptySet.addAll([1,2,2,2,3,3])
     verifyEq(Obj?[1,2,3], set.toList)
@@ -56,7 +56,7 @@ class SetTest : Test
     doTestSimple4(ConstTreeSet())
     doTestSimple4(ConstHashSet())
   }
-  Void doTestSimple4(ConstSet emptySet)
+  Void doTestSimple4(IConstSet emptySet)
   {
     set := emptySet.addAll([1..100])
     verifyEq(Obj?[1..100], set.toList)
@@ -67,7 +67,7 @@ class SetTest : Test
     doTestSimple5(ConstTreeSet())
     doTestSimple5(ConstHashSet())
   }
-  Void doTestSimple5(ConstSet emptySet)
+  Void doTestSimple5(IConstSet emptySet)
   {
     set := emptySet
     set = set.add(1)
@@ -84,7 +84,7 @@ class SetTest : Test
     doTestFromListAndRemove(ConstTreeSet())
     doTestFromListAndRemove(ConstHashSet())
   }
-  Void doTestFromListAndRemove(ConstSet emptySet)
+  Void doTestFromListAndRemove(IConstSet emptySet)
   {
     set := emptySet.addAll([1,2,2,2,3,3])
     Obj? val := null
@@ -98,7 +98,7 @@ class SetTest : Test
     doTestAddFromSeq(ConstTreeSet())
     doTestAddFromSeq(ConstHashSet())
   }
-  Void doTestAddFromSeq(ConstSet emptySet)
+  Void doTestAddFromSeq(IConstSet emptySet)
   {
     set := emptySet.addAllSeq(ValsSeq(ConstList.fromList([1,1,2,2,3,3]), null))
     verifyEq(Obj?[1,2, 3], set.toList)
@@ -109,7 +109,7 @@ class SetTest : Test
     doTestEquality(ConstTreeSet())
     doTestEquality(ConstHashSet())
   }
-  Void doTestEquality(ConstSet emptySet)
+  Void doTestEquality(IConstSet emptySet)
   {
     verifyEq(emptySet.addAll([,]), emptySet)
     verifyNotEq(emptySet, null)
@@ -130,7 +130,7 @@ class SetTest : Test
 //    doTestSetWithNullEquality(ConstTreeSet())
     doTestSetWithNullEquality(ConstHashSet())
   }
-  Void doTestSetWithNullEquality(ConstSet emptySet)
+  Void doTestSetWithNullEquality(IConstSet emptySet)
   {
     verifyEq(emptySet.addAll([1, null]), emptySet.addAll([null, 1]))
     verifyEq(emptySet.addAll([1, null, null]), emptySet.addAll([null, null, 1]))
@@ -146,7 +146,7 @@ class SetTest : Test
     doTestEach(ConstTreeSet())
     doTestEach(ConstHashSet())
   }
-  Void doTestEach(ConstSet emptySet)
+  Void doTestEach(IConstSet emptySet)
   {
     N := 100000
     set := emptySet.addAll((0..<N).toList)

@@ -6,24 +6,42 @@
 //   Ilya Sherenkov Dec 17, 2010 - Initial Contribution
 //
 
-const class ConstTreeSet : ConstSet
+const class ConstTreeSet : IConstSet, Sorted
 {
+  override const |Obj, Obj -> Int|? comparator
+  override const ConstTreeMap impl  
+
   // makeCopy override
-  internal new makeByImpl(ConstMap impl) : super.make(impl) { }
-  protected override This makeCopy(ConstMap impl) { ConstTreeSet.makeByImpl(impl) }
+  internal new makeByImpl(IConstMap impl) 
+  { 
+    this.impl = impl
+    this.comparator = this.impl.comparator 
+  }
+  internal override This makeCopy(IConstMap impl) { ConstTreeSet.makeByImpl(impl) }
   
   // constructors
-  new make(|Obj, Obj -> Int|? comparator := null) : super(ConstTreeMap(comparator)) { }
+  new make(|Obj, Obj -> Int|? comparator := null) 
+  { 
+    this.impl = ConstTreeMap(comparator) 
+    this.comparator = comparator 
+  }
+  
   static ConstTreeSet fromList(Obj?[] list, |Obj, Obj -> Int|? comparator := null) { ConstTreeSet(comparator).addAll(list) }
-  static ConstTreeSet fromSeq(Seq? seq, |Obj, Obj -> Int|? comparator := null) { ConstTreeSet(comparator).addAllSeq(seq) }
+  static ConstTreeSet fromSeq(IConstSeq? seq, |Obj, Obj -> Int|? comparator := null) { ConstTreeSet(comparator).addAllSeq(seq) }
 
-  override ConstColl convertFromList(Obj?[] list) { fromList(list) }   
+  override ConstTreeSet convertFromList(Obj?[] list) { fromList(list) }
+  
+  // eachrWhile optimization
+  override Obj? eachrWhile(|Obj?, Int -> Obj?| func)
+  {
+    return sorted(false).eachWhile(func)
+  }  
   
   ** 
   ** Lists the items of the set in a specified order
   ** 
-  Seq itemsOrdered(Bool asc) 
+  override IConstSeq sorted(Bool asc) 
   { 
-    return KeySeq(((ConstTreeMap)impl).entriesOrdered(asc)) 
+    return KeySeq(impl.sorted(asc)) 
   }  
 }

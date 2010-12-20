@@ -11,7 +11,7 @@
 **
 ** Provides lot of list-like methods like `#findAll`, `#exclude` and so on
 ** 
-const mixin ConstColl
+const mixin IConstColl
 {
 
   **
@@ -26,7 +26,7 @@ const mixin ConstColl
   ** 
   ** Handles the convertion from a Fantom list for the map/findAll mixin implementations
   ** 
-  abstract ConstColl convertFromList(Obj?[] list)
+  abstract IConstColl convertFromList(Obj?[] list)
   
   **
   ** Calls the specified function for every item in the list starting
@@ -102,7 +102,7 @@ const mixin ConstColl
   **   list := [3, 4, 5]
   **   list.map |Int v->Int| { return v*2 } => [6, 8, 10]
   **
-  ConstColl map(|Obj?, Int -> Obj?| f)
+  virtual IConstColl map(|Obj?, Int -> Obj?| f)
   {
     result := [,]
     each |v, i| { result.add(f(v, i)) }
@@ -168,12 +168,12 @@ const mixin ConstColl
   **   list := [0, 1, 2, 3, 4]
   **   list.exclude |Int v->Bool| { return v%2==0 } => [1, 3]
   **
-  ConstColl exclude(|Obj?, Int -> Bool| f)
+  virtual IConstColl exclude(|Obj?, Int -> Bool| f)
   {
     findAll |v,i| { !f(v, i) }
   }
   
-  ConstColl findAll(|Obj?, Int -> Bool| f)
+  virtual IConstColl findAll(|Obj?, Int -> Bool| f)
   {
     result := [,]
     each |v, i| { if(f(v, i)) result = result.add(v) }
@@ -214,7 +214,7 @@ const mixin ConstColl
   **   list := ["a", 3, "foo", 5sec, null]
   **   list.findType(Str#) => Str["a", "foo"]
   **
-  ConstColl findType(Type t) { findAll { it?.typeof?.fits(t) ?: false } }
+  virtual IConstColl findType(Type t) { findAll { it?.typeof?.fits(t) ?: false } }
   
   **
   ** Return the minimum value of the list.  If c is provided, then it

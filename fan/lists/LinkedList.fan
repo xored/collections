@@ -10,7 +10,7 @@
 **
 ** 
 **
-const class LinkedList : ConstStack
+const class LinkedList : IConstStack
 {
   override const Int size
   override const Obj? peek
@@ -22,9 +22,9 @@ const class LinkedList : ConstStack
     this.tail = tail
   }
   
-  override ConstStack pop() { tail ?: emptyList }
+  override IConstStack pop() { tail ?: emptyList }
   
-  override ConstStack push(Obj? val) { LinkedList(val, this, size + 1) }
+  override IConstStack push(Obj? val) { LinkedList(val, this, size + 1) }
   
   static const LinkedList emptyList := LinkedList(null, null, 0) 
 }

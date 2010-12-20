@@ -6,10 +6,9 @@
 //   Ilya Sherenkov Dec 17, 2010 - Initial Contribution
 //
 
-const abstract class ConstSet: ConstColl
+const mixin IConstSet: IConstColl
 {
-  const ConstMap impl
-  protected new make(ConstMap impl) { this.impl = impl }
+  abstract IConstMap impl()
 
   override Obj? eachWhile(|Obj?, Int -> Obj?| func)
   {
@@ -22,7 +21,7 @@ const abstract class ConstSet: ConstColl
   ** for result instances to maintain the same class 
   ** after executing the add/remove operations
   ** 
-  protected abstract This makeCopy(ConstMap impl) 
+  internal abstract This makeCopy(IConstMap impl) 
 
   **
   ** Returns true if the set contains that item
@@ -43,7 +42,7 @@ const abstract class ConstSet: ConstColl
   **
   ** Lists the set items in a const sequence
   ** 
-  Seq items() { impl.keys }
+  IConstSeq items() { impl.keys }
   
   **
   ** Creates a copy of the set with adding the item specified. 
@@ -83,7 +82,7 @@ const abstract class ConstSet: ConstColl
   ** Adds all items of the const sequence to the const set. 
   ** Default realization might be overriden for speed optimization purposes.
   **
-  virtual This addAllSeq(Seq? seq)
+  virtual This addAllSeq(IConstSeq? seq)
   {
     result := this;
     seq.each |v| { result = result.add(v) }
@@ -97,16 +96,16 @@ const abstract class ConstSet: ConstColl
   {
     if (that == null) return false
     if (this === that) return true
-    if (!(that is ConstSet)) return false
+    if (!(that is IConstSet)) return false
 
-    m := (ConstSet) that
+    m := (IConstSet) that
     if (m.size() != this.size() || m.hash() != this.hash()) return false
     
     // empty sets are equal
     if (this.size == 0) return true
 
 //    this.eachWhile
-    for (Seq? seq := this.items; seq != null; seq = seq.next)
+    for (IConstSeq? seq := this.items; seq != null; seq = seq.next)
     {
       if (! m.contains(seq.val)) return false
     }
@@ -124,5 +123,10 @@ const abstract class ConstSet: ConstColl
     return result
   }
   
+  // covariance overrides
+  override IConstSet map(|Obj?, Int -> Obj?| f)  { (IConstSet) IConstColl.super.map(f) }
+  override IConstSet exclude(|Obj?, Int -> Bool| f) { (IConstSet) IConstColl.super.exclude(f) }
+  override IConstSet findAll(|Obj?, Int -> Bool| f) { (IConstSet) IConstColl.super.findAll(f) }
+  override IConstSet findType(Type t) { (IConstSet) IConstSet.super.findType(t) }
 }
 

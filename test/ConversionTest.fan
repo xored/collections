@@ -34,14 +34,14 @@ class ConversionTest : Test
     verifyToList(ConstList.fromList(createList(1000000)))
   }
 
-  private Void verifyToList(ConstList list)
+  private Void verifyToList(IConstList list)
   {
     l := list.toList
     l.size.times |i| { verifyEq(l[i], list[i]) }
   }
   private Void verifyFromList(Obj?[] list)
   {
-    clist := CList.createFromList(list)
+    clist := ConstList.fromList(list)
     list.size.times |i|
     {
       verifyEq(list[i], clist[i])

@@ -7,9 +7,9 @@
 //
 
 **
-** Mixin for red-black tree manipulation
+** red-black tree manipulation library
 ** 
-internal mixin TreeUtils
+internal const class TreeUtils
 {
   static Err noImpl() { Err("not implemented") }
   
@@ -110,4 +110,3 @@ internal mixin TreeUtils
     return black(key, val, left, ins);
   }
 }
-

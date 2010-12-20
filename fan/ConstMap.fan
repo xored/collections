@@ -19,7 +19,7 @@ const class MapEntry
   
 }
 
-abstract const class MapSeq : Seq
+abstract const class MapSeq : IConstSeq
 {
   abstract override MapEntry? val()
   abstract override MapSeq? next() 
@@ -45,7 +45,7 @@ internal const class EmptyMapSeq : MapSeq, EmptySeq
   override const MapSeq? next := null
 }
 
-internal const class NullHeadMapSeq : MapSeq
+internal const class NullHeadMapEntrySeq : MapSeq
 {
   private const MapSeq nextSeq
   private const Obj? nullVal
@@ -60,27 +60,27 @@ internal const class NullHeadMapSeq : MapSeq
   override MapSeq? next() { nextSeq }
 }
 
-internal const class KeySeq : Seq
+internal const class KeySeq : IConstSeq
 {
   private const MapSeq seq
   new make(MapSeq seq) { this.seq = seq }
   override Obj? val() { seq.val?.key }
-  override Seq? next() 
+  override KeySeq? next() 
   { 
     result := seq.next
     return result == null ? null : KeySeq(result)
   }
 }
 
-internal const class ValSeq : Seq
+internal const class ValSeq : IConstSeq
 {
-  private const Seq seq
-  new make(Seq seq) { this.seq = seq }
+  private const IConstSeq seq
+  new make(IConstSeq seq) { this.seq = seq }
   override Obj? val() 
   { 
     (seq.val as MapEntry)?.val 
   }
-  override Seq? next() 
+  override ValSeq? next() 
   { 
     result := seq.next
     return result == null ? null : ValSeq(result)
@@ -93,7 +93,7 @@ internal class Leaf
   new make(Obj? val := null) { this.val = val }
 }
 
-const mixin ConstMap: ConstColl
+const mixin IConstMap: IConstColl
 {
   //////////////////////////////////////////////////////////////////////////
   // Abstract methods
@@ -128,26 +128,16 @@ const mixin ConstMap: ConstColl
   **
   ** Returns all entries in this map  
   ** 
-  protected abstract MapSeq entries()
+  abstract MapSeq entries()
 
   override Obj? eachWhile(|Obj?, Int -> Obj?| func)
   {
     return entries.eachWhile(func)
   }
   
-  **
-  ** Returns MapEntrySeq
-  ** 
-  override ConstColl convertFromList(Obj?[] list)
-  {
-    result := null
-    list.reverse.each |mapEntry| { result = MapEntrySeq(mapEntry, result) }
-    return result
-  }
+  virtual IConstSeq keys() { KeySeq(entries) }
   
-  virtual Seq keys() { KeySeq(entries) }
-  
-  virtual Seq vals() { ValSeq(entries) }
+  virtual IConstSeq vals() { ValSeq(entries) }
   abstract Int size()
   //////////////////////////////////////////////////////////////////////////
   // Integration methods
@@ -162,18 +152,46 @@ const mixin ConstMap: ConstColl
     if(this.containsKey(null)) result.def = this[null]
     entries.each |mapEntry| 
     { 
-      result.add(((MapEntry)mapEntry).key, ((MapEntry)mapEntry).val) 
+      result.add(mapEntry->key, mapEntry->val) 
     }
     return result
   }
   
+  // covariance overrides
+  override IConstMap map(|Obj?, Int -> Obj?| f)  { (IConstMap) IConstColl.super.map(f) }
+  override IConstMap exclude(|Obj?, Int -> Bool| f) { (IConstMap) IConstColl.super.exclude(f) }
+  override IConstMap findAll(|Obj?, Int -> Bool| f) { (IConstMap) IConstColl.super.findAll(f) }
+  override IConstMap findType(Type t) { (IConstMap) IConstColl.super.findType(t) }
+ 
   **
-  ** Creates const map from Fantom map. The def field goes to 
+  ** Adds all items of the Fantom list of MapEntry to the const map. 
+  ** Default realization might be overriden for speed optimization purposes.
+  **
+  virtual This addAll(Obj?[] list)
+  {
+    result := this
+    list.each |mapEntry| { result = result[mapEntry->key] = mapEntry->val }
+    return result
+  } 
+
+  **
+  ** Adds all items of the const sequence of MapEntry to the const map. 
+  ** Default realization might be overriden for speed optimization purposes.
+  **
+  virtual This addAllSeq(IConstSeq? seq)
+  {
+    result := this;
+    seq.each |mapEntry| { result = result[mapEntry->key] = mapEntry->val }
+    return result
+  } 
+ 
+  **
+  ** Adds const map items from Fantom map. The def field goes to 
   ** null key
   ** 
-  static ConstMap fromMap(Obj:Obj? map)
+  virtual This addAllMap(Obj:Obj? map)
   {
-    result := ConstHashMap.empty
+    result := this
     map.each |v, k| { result = result[k] = v }
     if(map.def != null) result = result[null] = map.def
     return result

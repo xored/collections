@@ -6,11 +6,68 @@
 //   Ivan Inozemtsev Dec 6, 2010 - Initial Contribution
 //   Ilya Sherenkov Dec 17, 2010 - Update
 
+**************************************************************************
+** ConstList
+**************************************************************************
+ 
+abstract const class ConstList : IConstList
+{
+  // real const list implementation is mantained by thee subclasses: CList, SubList and ChunkedList 
+
+  //////////////////////////////////////////////////////////////////////////
+  // Static creation
+  //////////////////////////////////////////////////////////////////////////
+  override static const IConstList empty := CList(0, Node.empty, [,])
+  static IConstList fromList(Obj?[] items) { CList.createFromList(items) }
+  override IConstList convertFromList(Obj?[] list) { fromList(list) }
+
+  **
+  ** Returns a sublist. Default implementation just creates new `SubList#` from 'this'
+  ** 
+  @Operator override IConstList getRange(Range r)
+  {
+    r = normalizeRange(r)
+    return SubList(this, r.start, r.end+1)
+  }
+  
+  **
+  ** Concatenates this with a given list
+  ** This method has been added to distinguish from `#addAll` by arg type
+  ** Default implementation just creates ChunkedList
+  ** 
+  override IConstList concat(IConstList list) 
+  {
+    ChunkedList.create([this, list])
+  }
+  
+  **
+  ** Removes item at specified index. 
+  ** Default implementation creates chunked list, inheritors
+  ** can override in order to provide better performance
+  ** 
+  override IConstList removeAt(Int index)
+  {
+    index = normalizeIndex(index)
+    return index == size - 1 ? pop : ChunkedList.create([take(index), drop(index + 1)])
+  }
+  
+  **
+  ** Inserts item at specified index. 
+  ** Default implementation creates chunked list, inheritors
+  ** can override in order to provide better performance
+  ** 
+  override IConstList insert(Int index, Obj? o)
+  {
+    index = normalizeIndex(index)
+    return index == size - 1 ? push(o) : ChunkedList.create([take(index).push(o), drop(index)])
+  }
+  
+}
 
 **************************************************************************
 ** Node
 **************************************************************************
-const class Node
+internal const class Node
 {
  
   internal static const Int bitWidth := 5
@@ -32,6 +89,7 @@ const class Node
 //    return Node(arr)
   }
 }
+
 
 
 **************************************************************************
@@ -56,6 +114,30 @@ internal const class CList : ConstList
     this.depth = levelFromSize(size)
   }
 
+  static CList createFromList(Obj?[] items)
+  {
+    //tail only
+    if(items.size <= Node.nodeSize) 
+    {
+      return CList(items.size, Node.empty, items)
+    }
+    
+    //so that we will always have a tail
+    size := items.size
+    nodeCount := (items.size - 1)/Node.nodeSize
+    tail := items[nodeCount * Node.nodeSize ..-1]
+    
+    items = items[0..<nodeCount * Node.nodeSize]
+
+    while(items.size > 1)
+    {
+      items = collapse(items)
+    }
+    
+    //now items is a list of nodes which should be just added to the root node
+    return CList(size, items.first, tail)
+  }
+
   private static const Int level1Size := Node.nodeSize * Node.nodeSize + Node.nodeSize
   private static Int levelFromSize(Int size)
   {
@@ -73,7 +155,7 @@ internal const class CList : ConstList
   //////////////////////////////////////////////////////////////////////////
   override const Int size
   
-  override ConstList push(Obj? obj) 
+  override IConstList push(Obj? obj) 
   {
     //room in tail
     if(inTail(size)) return CList(size + 1, root, tail.dup.add(obj))
@@ -89,10 +171,10 @@ internal const class CList : ConstList
     return CList(size + 1, newRoot, [obj])
   }
   
-  override ConstList pop()
+  override IConstList pop()
   {
     if(size == 0) return this
-    if(size == 1) return emptyCList
+    if(size == 1) return empty
     if(size - tailStart > 1) return CList(size - 1, root, tail[0..-2])
     
     newTail := arrayFor(size - 2)
@@ -112,7 +194,7 @@ internal const class CList : ConstList
     return arrayFor(i)[nodeIndex(i)] 
   }
   
-  override ConstList set(Int i, Obj? val)
+  override IConstList set(Int i, Obj? val)
   {
     i = normalizeIndex(i)
     return i >= tailStart ? 
@@ -120,20 +202,20 @@ internal const class CList : ConstList
       CList(size, doSet(depth, root, i, val), tail)
   }
   
-  override ConstList removeAt(Int i)
+  override IConstList removeAt(Int i)
   {
     i = normalizeIndex(i)
      return i >= tailStart ? 
       CList(size - 1, root, tail.dup { it.removeAt(nodeIndex(i)) }) : 
-      ConstList.super.removeAt(i)
+      super.removeAt(i)
   }
   
-  override ConstList insert(Int i, Obj? o)
+  override IConstList insert(Int i, Obj? o)
   {
     i = normalizeIndex(i)
     return i >= tailStart && inTail(size) ? 
       CList(size + 1, root, tail.insert(nodeIndex(i), o)) : 
-      ConstList.super.insert(i, o)
+      super.insert(i, o)
   }
   
   //////////////////////////////////////////////////////////////////////////
@@ -216,35 +298,7 @@ internal const class CList : ConstList
   private static Int levelUp(Int val, Int level := 1) { val.shiftl(level * Node.bitWidth) }
   private static Int nodeIndex(Int i) { i.and(Node.indexMask) }
   
-  //////////////////////////////////////////////////////////////////////////
-  // Static creation
-  //////////////////////////////////////////////////////////////////////////
-  static const CList emptyCList := CList(0, Node.empty, [,])
-  
-  internal static CList createFromList(Obj?[] items)
-  {
-    //tail only
-    if(items.size <= Node.nodeSize) 
-    {
-      return CList(items.size, Node.empty, items)
-    }
-    
-    //so that we will always have a tail
-    size := items.size
-    nodeCount := (items.size - 1)/Node.nodeSize
-    tail := items[nodeCount * Node.nodeSize ..-1]
-    
-    items = items[0..<nodeCount * Node.nodeSize]
 
-    while(items.size > 1)
-    {
-      items = collapse(items)
-    }
-    
-    //now items is a list of nodes which should be just added to the root node
-    return CList(size, items.first, tail)
-  }
-  
   **
   ** Packs given items to nodes
   ** 

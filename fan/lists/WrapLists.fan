@@ -12,15 +12,17 @@
 **************************************************************************
 internal const class SubList : ConstList
 {
+
   //////////////////////////////////////////////////////////////////////////
-  // Constructor and fileds
+  // Constructor and fields
   //////////////////////////////////////////////////////////////////////////
-  private const ConstList parent
+
+  private const IConstList parent
   ** Start index in parent list
   private const Int from
   ** Exclusive end index
   private const Int to
-  new make(ConstList parent, Int from, Int to)
+  new make(IConstList parent, Int from, Int to)
   {
     this.parent = parent
     this.from = from
@@ -38,25 +40,25 @@ internal const class SubList : ConstList
     return parent.get(i + from)
   }
  
-  @Operator override ConstList getRange(Range r)
+  @Operator override IConstList getRange(Range r)
   {
     r = normalizeRange(r)
     return SubList(parent, from + r.start, from + r.end + 1)
   }
   
-  @Operator override ConstList set(Int i, Obj? obj)
+  @Operator override IConstList set(Int i, Obj? obj)
   {
     SubList(parent.set(normalizeIndex(i) + from, obj), from, to)
   }
   
-  override ConstList push(Obj? obj)
+  override IConstList push(Obj? obj)
   {
     SubList(
       to == parent.size ? parent.push(obj) : parent.set(to, obj), 
       from, to + 1)
   }
   
-  override ConstList pop()
+  override IConstList pop()
   {
     isEmpty ? this : SubList(parent, from, to - 1)
   }
@@ -66,24 +68,25 @@ internal const class SubList : ConstList
 ** ChunkedList
 **************************************************************************
 ** 
-** Chunked list is a `ConstList#` impl
+** Chunked list is a `IConstList#` impl
 ** which consists of several chunks
 ** 
 internal const class ChunkedList : ConstList
 {
+  
   //////////////////////////////////////////////////////////////////////////
   // Constructor and fields
   //////////////////////////////////////////////////////////////////////////
-  private const ConstList[] chunks
+  private const IConstList[] chunks
   
   **
   ** Sorted list of indices by chunk
   ** 
   private const Range[] indices
-  internal new make(ConstList[] chunks)
+  internal new make(IConstList[] chunks)
   {
     this.chunks = chunks
-    Range[] rs := chunks.reduce([,]) |Range[] r, ConstList c -> Range[]|
+    Range[] rs := chunks.reduce([,]) |Range[] r, IConstList c -> Range[]|
     {
       r.push( (r.last?.end ?: 0)..<((r.last?.end ?: 0) + c.size))
     }
@@ -91,7 +94,7 @@ internal const class ChunkedList : ConstList
     this.indices = rs
   }
   
-  static ConstList create(ConstList[] chunks)
+  static IConstList create(IConstList[] chunks)
   {
     chunks = normalizeChunks(chunks)
     return chunks.size > 1 ? ChunkedList(chunks) : chunks.first
@@ -110,7 +113,7 @@ internal const class ChunkedList : ConstList
     return chunks[ri][reli]
   }
   
-  @Operator override ConstList set(Int i, Obj? o) 
+  @Operator override IConstList set(Int i, Obj? o) 
   {
     i = normalizeIndex(i)
     ri := index(indices, i)
@@ -118,12 +121,12 @@ internal const class ChunkedList : ConstList
     return ChunkedList(chunks.map |c, ci| { ci == ri ? c.set(reli, o) : c })
   }
   
-  override ConstList pop() 
+  override IConstList pop() 
   { 
     ChunkedList.create(chunks.dup.set(-1, chunks.last.pop))
   }
   
-  override ConstList push(Obj? o) 
+  override IConstList push(Obj? o) 
   { 
     ChunkedList.create(chunks.dup.set(-1, chunks.last.push(o))) 
   }
@@ -133,7 +136,7 @@ internal const class ChunkedList : ConstList
   **
   ** Prevents from defragmentation
   ** 
-  static ConstList[] normalizeChunks(ConstList[] chunks)
+  static IConstList[] normalizeChunks(IConstList[] chunks)
   {
     flattenChunks(chunks).reduce([,]) |r, i| { collapse(r, i) }
   }
@@ -142,7 +145,7 @@ internal const class ChunkedList : ConstList
   ** If chunk is `ChunkedList#`, returns its chunks
   ** otherwise returns '[chunk]'
   ** 
-  private static ConstList[] flattenChunks(ConstList[] chunks)
+  private static IConstList[] flattenChunks(IConstList[] chunks)
   {
     chunks.map |c| { 
       c isnot ChunkedList ? 
@@ -154,7 +157,7 @@ internal const class ChunkedList : ConstList
   **
   ** If next chunk is less than a limit, add it to last chunk in the list
   ** 
-  private static ConstList[] collapse(ConstList[] list, ConstList next)
+  private static IConstList[] collapse(IConstList[] list, IConstList next)
   {
     list.isEmpty ? 
       (next.isEmpty ? [,] : [next]) : 
