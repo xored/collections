@@ -17,7 +17,7 @@ class SpeedTest : Test
     echo("$s${(Duration.now - d).toMillis}ms")
   }
   
-  Void notestAddSpeed() 
+  Void testAddSpeed() 
   {
     echo("*** Test of \"add\".")
     doAddN(10)
@@ -87,7 +87,7 @@ class SpeedTest : Test
   }
 
   
-  Void notestRemoveSpeed() 
+  Void testRemoveSpeed() 
   {
     echo("*** Test of \"remove\".")
     doRemoveN(10)
