@@ -14,5 +14,5 @@ const mixin Sorted
 {
   ** Comparer, if null, then `Obj.compare` is used  
   abstract |Obj, Obj -> Int|? comparator()
-  abstract IConstSeq sorted(Bool asc)
+  abstract ConstSeq sorted(Bool asc)
 }

@@ -12,7 +12,7 @@
 **
 internal const class TreeNodeSeq : MapSeq
 {
-  private new make(IConstStack stack, Bool asc)
+  private new make(ConstStack stack, Bool asc)
   {
     this.stack = stack
     this.asc = asc
@@ -33,7 +33,7 @@ internal const class TreeNodeSeq : MapSeq
   
   static TreeNodeSeq create(TreeNode node, Bool asc) { TreeNodeSeq(push(node, asc), asc) }
   
-  private static IConstStack push(TreeNode? node, Bool asc, IConstStack stack := LinkedList.emptyList)
+  private static ConstStack push(TreeNode? node, Bool asc, ConstStack stack := LinkedList.emptyList)
   {
     while(node != null)
     {
@@ -44,6 +44,6 @@ internal const class TreeNodeSeq : MapSeq
   }
   
   private const Bool asc
-  private const IConstStack stack
+  private const ConstStack stack
 }
 

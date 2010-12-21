@@ -15,7 +15,7 @@ class MapTest : Test
     verifyTrivialPositive(ConstTreeMap.empty)
   }
   
-  Void verifyTrivialPositive(IConstMap map)
+  Void verifyTrivialPositive(ConstMap map)
   {
     
     map = map["foo"] = "bar"
@@ -36,7 +36,7 @@ class MapTest : Test
     verifyTest2 (ConstTreeMap.empty)
   }
   
-  Void verifyTest2(IConstMap map)
+  Void verifyTest2(ConstMap map)
   {
     count := 100
     count.times
@@ -50,7 +50,7 @@ class MapTest : Test
     }
     verifyEq(map.keys.toList.sort, Obj?[,].addAll((1..count).toList))
   }
-  Void verifyTest1(IConstMap map)
+  Void verifyTest1(ConstMap map)
   {
     count := 100
     count.times
@@ -70,7 +70,7 @@ class MapTest : Test
     verifyCollision(ConstTreeMap.empty)
   }
   
-  Void verifyCollision(IConstMap map)
+  Void verifyCollision(ConstMap map)
   {
     c1 := Collider(2, 2)
     c2 := Collider(4, 0)
@@ -115,7 +115,7 @@ class MapTest : Test
     verifyRandomFill(ConstHashMap.empty, 10000)
     verifyRandomFill(ConstTreeMap.empty, 10000)
   }
-  Void verifyRandomFill(IConstMap map, Int size)
+  Void verifyRandomFill(ConstMap map, Int size)
   {
     rand := randomVector(size)
     rand.each |v,i|
@@ -153,7 +153,7 @@ class MapTest : Test
     verifyTestToMap(ConstHashMap.empty)
     verifyTestToMap(ConstTreeMap.empty)
   }
-  Void verifyTestToMap(IConstMap map)
+  Void verifyTestToMap(ConstMap map)
   {
     map = map[1] = 1
     map = map[2] = 2
@@ -168,7 +168,7 @@ class MapTest : Test
     verifyTestEach(ConstTreeMap.empty)
   }
   
-  Void verifyTestEach(IConstMap map)
+  Void verifyTestEach(ConstMap map)
   {
     N := 100000;
     N.times { map = map[it] = it }

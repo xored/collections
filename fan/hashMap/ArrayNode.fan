@@ -75,7 +75,7 @@ internal const class ArrayNode : HashMapNode
     return BitmapNode(bitmap, newArray)
   }
   
-  override IConstSeq? entries() { ArrayNodeSeq.create(nodes, 0, null) }
+  override ConstSeq? entries() { ArrayNodeSeq.create(nodes, 0, null) }
 }
 
 internal const class ArrayNodeSeq : MapSeq
@@ -90,7 +90,7 @@ internal const class ArrayNodeSeq : MapSeq
     this.seq = seq
   }
   
-  static MapSeq? create(HashMapNode?[] nodes, Int i, IConstSeq? seq)
+  static MapSeq? create(HashMapNode?[] nodes, Int i, ConstSeq? seq)
   {
     if(seq != null) return ArrayNodeSeq(nodes, i, seq)
     for(j := i; j < nodes.size; j++)

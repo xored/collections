@@ -6,7 +6,7 @@
 //   Ivan Inozemtsev Dec 6, 2010 - Initial Contribution
 //   Ilya Sherenkov Dec 17, 2010 - Update
 
-const class ConstHashMap : IConstMap
+const class ConstHashMap : ConstMap
 {
   //////////////////////////////////////////////////////////////////////////
   // Constructor and fields
@@ -38,7 +38,7 @@ const class ConstHashMap : IConstMap
     key == null ? hasNull : ((root?.find(0, key.hash, key) ?: NotFound.instance) !== NotFound.instance)
   }
   
-  @Operator override This set(Obj? key, Obj? val)
+  @Operator override ConstMap set(Obj? key, Obj? val)
   {
     if(key == null)
     {
@@ -61,7 +61,7 @@ const class ConstHashMap : IConstMap
     return result
   }
   
-  override This remove(Obj? key, |Obj? func|? f := null)
+  override ConstMap remove(Obj? key, |Obj? func|? f := null)
   {
     if(key == null) 
     {

@@ -6,15 +6,27 @@
 //   Ivan Inozemtsev Dec 8, 2010 - Initial Contribution
 //
 
+const mixin ConstStack
+{
+  abstract Int size()
+
+  abstract Obj? peek()
+  
+  abstract ConstStack pop() 
+  
+  abstract ConstStack push(Obj? val) 
+
+  virtual Bool isEmpty() { size == 0 }
+}
 
 **
 ** 
 **
-const class LinkedList : IConstStack
+const class LinkedList : ConstStack
 {
+  const ConstStack? tail
   override const Int size
   override const Obj? peek
-  private const LinkedList? tail
   new make(Obj? peek, LinkedList? tail, Int size)
   {
     this.size = size
@@ -22,9 +34,7 @@ const class LinkedList : IConstStack
     this.tail = tail
   }
   
-  override IConstStack pop() { tail ?: emptyList }
-  
-  override IConstStack push(Obj? val) { LinkedList(val, this, size + 1) }
-  
+  override ConstStack pop() { tail ?: LinkedList(null, null, 0) }
+  override ConstStack push(Obj? val) { LinkedList(val, this, size + 1) }
   static const LinkedList emptyList := LinkedList(null, null, 0) 
 }

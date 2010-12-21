@@ -7,18 +7,18 @@
 //   Ilya Sherenkov Dec 17, 2010 - Update
 //
 
-const mixin IConstSeq : IConstColl
+const mixin ConstSeq : ConstColl
 {
   abstract Obj? val()
   
-  abstract IConstSeq? next()
+  abstract ConstSeq? next()
   
-  override IConstColl convertFromList(Obj?[] list) { ValsSeq(ConstList.fromList(list), null) }   
+  override ConstSeq convertFromList(Obj?[] list) { ValsSeq(ConstList.fromList(list), null) }   
 
   override Obj? eachWhile(|Obj?, Int -> Obj?| func)
   {
     index := 0
-    for (IConstSeq? s := this; s!=null; index++)
+    for (ConstSeq? s := this; s!=null; index++)
     {
       result := func(s.val, index)
       if (result != null) return result
@@ -28,29 +28,29 @@ const mixin IConstSeq : IConstColl
   }
   
   // covariance overrides
-  override IConstSeq map(|Obj?, Int -> Obj?| f)  { (IConstSeq) IConstColl.super.map(f) }
-  override IConstSeq exclude(|Obj?, Int -> Bool| f) { (IConstSeq) IConstColl.super.exclude(f) }
-  override IConstSeq findAll(|Obj?, Int -> Bool| f) { (IConstSeq) IConstColl.super.findAll(f) }
-  override IConstSeq findType(Type t) { (IConstSeq) IConstColl.super.findType(t) }
+  override ConstSeq map(|Obj?, Int -> Obj?| f)  { ConstColl.super.map(f) }
+  override ConstSeq exclude(|Obj?, Int -> Bool| f) { ConstColl.super.exclude(f) }
+  override ConstSeq findAll(|Obj?, Int -> Bool| f) { ConstColl.super.findAll(f) }
+  override ConstSeq findType(Type t) { ConstColl.super.findType(t) }
   
 }
 
-const class HeadSeq : IConstSeq
+const class HeadSeq : ConstSeq
 {
   override const Obj? val
-  override const IConstSeq? next
-  new make(Obj? val, IConstSeq? next)
+  override const ConstSeq? next
+  new make(Obj? val, ConstSeq? next)
   {
     this.val = val
     this.next = next
   }
 }
 
-const class ValsSeq : IConstSeq
+const class ValsSeq : ConstSeq
 {
-  private const IConstList vals
-  private const IConstSeq? nextSeq 
-  new make(IConstList vals, IConstSeq? next)
+  private const ConstList vals
+  private const ConstSeq? nextSeq 
+  new make(ConstList vals, ConstSeq? next)
   {
     if(vals.isEmpty) throw ArgErr("Can't create seq on empty list")
     this.vals = vals
@@ -59,10 +59,10 @@ const class ValsSeq : IConstSeq
   
   override Obj? val() { vals.first }
   
-  override IConstSeq? next() { vals.size == 1 ? nextSeq : ValsSeq(vals.drop(1), nextSeq) }
+  override ConstSeq? next() { vals.size == 1 ? nextSeq : ValsSeq(vals.drop(1), nextSeq) }
 }
   
-const mixin EmptySeq : IConstSeq
+const mixin EmptySeq : ConstSeq
 {
   override Obj? eachWhile(|Obj? o, Int i->Obj?| f) { null }
 }

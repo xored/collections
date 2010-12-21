@@ -16,10 +16,9 @@ const class MapEntry
   }
   const Obj? key
   const Obj? val
-  
 }
 
-abstract const class MapSeq : IConstSeq
+abstract const class MapSeq : ConstSeq
 {
   abstract override MapEntry? val()
   abstract override MapSeq? next() 
@@ -60,7 +59,7 @@ internal const class NullHeadMapEntrySeq : MapSeq
   override MapSeq? next() { nextSeq }
 }
 
-internal const class KeySeq : IConstSeq
+internal const class KeySeq : ConstSeq
 {
   private const MapSeq seq
   new make(MapSeq seq) { this.seq = seq }
@@ -72,10 +71,10 @@ internal const class KeySeq : IConstSeq
   }
 }
 
-internal const class ValSeq : IConstSeq
+internal const class ValSeq : ConstSeq
 {
-  private const IConstSeq seq
-  new make(IConstSeq seq) { this.seq = seq }
+  private const ConstSeq seq
+  new make(ConstSeq seq) { this.seq = seq }
   override Obj? val() 
   { 
     (seq.val as MapEntry)?.val 
@@ -93,7 +92,7 @@ internal class Leaf
   new make(Obj? val := null) { this.val = val }
 }
 
-const mixin IConstMap: IConstColl
+const mixin ConstMap: ConstColl
 {
   //////////////////////////////////////////////////////////////////////////
   // Abstract methods
@@ -105,7 +104,7 @@ const mixin IConstMap: IConstColl
   ** This method returns 'This' because return type depends
   ** on concrete impl - TreeMap should return TreeMap and so on
   ** 
-  @Operator abstract This set(Obj? key, Obj? val)
+  @Operator abstract ConstMap set(Obj? key, Obj? val)
   
   **
   ** Returns value at given index. If item is not found,
@@ -123,7 +122,7 @@ const mixin IConstMap: IConstColl
   **   map = map.remove("key") { val = it } 
   **
   ** 
-  abstract This remove(Obj? key, |Obj?|? func := null)
+  abstract ConstMap remove(Obj? key, |Obj?|? func := null)
 
   **
   ** Returns all entries in this map  
@@ -135,9 +134,10 @@ const mixin IConstMap: IConstColl
     return entries.eachWhile(func)
   }
   
-  virtual IConstSeq keys() { KeySeq(entries) }
+  virtual ConstSeq keys() { KeySeq(entries) }
   
-  virtual IConstSeq vals() { ValSeq(entries) }
+  virtual ConstSeq vals() { ValSeq(entries) }
+
   abstract Int size()
   //////////////////////////////////////////////////////////////////////////
   // Integration methods
@@ -148,53 +148,49 @@ const mixin IConstMap: IConstColl
   ** 
   Obj:Obj? toMap()
   {
-    result := [:]
-    if(this.containsKey(null)) result.def = this[null]
-    entries.each |mapEntry| 
-    { 
-      result.add(mapEntry->key, mapEntry->val) 
+    return entries.reduce([:]) |Obj:Obj? r, MapEntry entry -> Obj:Obj?| 
+    {
+      if (entry.key == null)
+        r.def = entry.val 
+      else 
+        r.add(entry.key, entry.val)
+      return r
     }
-    return result
   }
   
   // covariance overrides
-  override IConstMap map(|Obj?, Int -> Obj?| f)  { (IConstMap) IConstColl.super.map(f) }
-  override IConstMap exclude(|Obj?, Int -> Bool| f) { (IConstMap) IConstColl.super.exclude(f) }
-  override IConstMap findAll(|Obj?, Int -> Bool| f) { (IConstMap) IConstColl.super.findAll(f) }
-  override IConstMap findType(Type t) { (IConstMap) IConstColl.super.findType(t) }
+  override ConstMap map(|Obj?, Int -> Obj?| f)  { ConstColl.super.map(f) }
+  override ConstMap exclude(|Obj?, Int -> Bool| f) { ConstColl.super.exclude(f) }
+  override ConstMap findAll(|Obj?, Int -> Bool| f) { ConstColl.super.findAll(f) }
+  override ConstMap findType(Type t) { ConstColl.super.findType(t) }
  
   **
   ** Adds all items of the Fantom list of MapEntry to the const map. 
   ** Default realization might be overriden for speed optimization purposes.
   **
-  virtual This addAll(Obj?[] list)
+  virtual ConstMap addAll(Obj?[] list)
   {
-    result := this
-    list.each |mapEntry| { result = result[mapEntry->key] = mapEntry->val }
-    return result
+    list.reduce(this) |ConstMap r, MapEntry entry -> ConstMap|  { r = r[entry.key] = entry.val }
   } 
 
   **
   ** Adds all items of the const sequence of MapEntry to the const map. 
   ** Default realization might be overriden for speed optimization purposes.
   **
-  virtual This addAllSeq(IConstSeq? seq)
+  virtual ConstMap addAllSeq(ConstSeq? seq)
   {
-    result := this;
-    seq.each |mapEntry| { result = result[mapEntry->key] = mapEntry->val }
-    return result
+    seq.reduce(this) |ConstMap r, MapEntry entry -> ConstMap|  { r = r[entry.key] = entry.val }
   } 
  
   **
   ** Adds const map items from Fantom map. The def field goes to 
   ** null key
   ** 
-  virtual This addAllMap(Obj:Obj? map)
+  virtual ConstMap addAllMap(Obj:Obj? map)
   {
     result := this
-    map.each |v, k| { result = result[k] = v }
-    if(map.def != null) result = result[null] = map.def
-    return result
+    if (map.def != null) result = result[null] = map.def
+    return map.reduce(result) |ConstMap r, Obj? v, Obj k -> ConstMap| { result = result[k] = v }
   }
   
 }

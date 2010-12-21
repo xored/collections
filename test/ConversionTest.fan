@@ -34,7 +34,7 @@ class ConversionTest : Test
     verifyToList(ConstList.fromList(createList(1000000)))
   }
 
-  private Void verifyToList(IConstList list)
+  private Void verifyToList(ConstList list)
   {
     l := list.toList
     l.size.times |i| { verifyEq(l[i], list[i]) }

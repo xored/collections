@@ -57,5 +57,5 @@ internal const class CollisionNode : HashMapNode
     for(i := 0; i < objs.size; i+= 2) if(key == objs[i]) return i
     return -1
   }
-  override IConstSeq? entries() { BitmapNodeSeq.create(objs, 0, null) }
+  override ConstSeq? entries() { BitmapNodeSeq.create(objs, 0, null) }
 }

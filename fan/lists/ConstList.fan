@@ -5,26 +5,26 @@
 // History:
 //   Ivan Inozemtsev Dec 6, 2010 - Initial Contribution
 //   Ilya Sherenkov Dec 17, 2010 - Update
+//
 
 **************************************************************************
 ** ConstList
 **************************************************************************
- 
-abstract const class ConstList : IConstList
+const mixin ConstList : ConstStack, ConstColl
 {
-  // real const list implementation is mantained by thee subclasses: CList, SubList and ChunkedList 
-
   //////////////////////////////////////////////////////////////////////////
   // Static creation
   //////////////////////////////////////////////////////////////////////////
-  override static const IConstList empty := CList(0, Node.empty, [,])
-  static IConstList fromList(Obj?[] items) { CList.createFromList(items) }
-  override IConstList convertFromList(Obj?[] list) { fromList(list) }
+  static const ConstList empty := CList(0, Node.empty, [,])
+  static ConstList fromList(Obj?[] items) { CList.createFromList(items) }
 
+  override ConstList convertFromList(Obj?[] list) { fromList(list) }
+  
   **
   ** Returns a sublist. Default implementation just creates new `SubList#` from 'this'
   ** 
-  @Operator override IConstList getRange(Range r)
+  @Operator 
+  virtual ConstList getRange(Range r)
   {
     r = normalizeRange(r)
     return SubList(this, r.start, r.end+1)
@@ -35,7 +35,7 @@ abstract const class ConstList : IConstList
   ** This method has been added to distinguish from `#addAll` by arg type
   ** Default implementation just creates ChunkedList
   ** 
-  override IConstList concat(IConstList list) 
+  virtual ConstList concat(ConstList list) 
   {
     ChunkedList.create([this, list])
   }
@@ -45,7 +45,7 @@ abstract const class ConstList : IConstList
   ** Default implementation creates chunked list, inheritors
   ** can override in order to provide better performance
   ** 
-  override IConstList removeAt(Int index)
+  virtual ConstList removeAt(Int index)
   {
     index = normalizeIndex(index)
     return index == size - 1 ? pop : ChunkedList.create([take(index), drop(index + 1)])
@@ -56,280 +56,152 @@ abstract const class ConstList : IConstList
   ** Default implementation creates chunked list, inheritors
   ** can override in order to provide better performance
   ** 
-  override IConstList insert(Int index, Obj? o)
+  virtual ConstList insert(Int index, Obj? o)
   {
     index = normalizeIndex(index)
     return index == size - 1 ? push(o) : ChunkedList.create([take(index).push(o), drop(index)])
   }
   
-}
-
-**************************************************************************
-** Node
-**************************************************************************
-internal const class Node
-{
- 
-  internal static const Int bitWidth := 5
-  internal static const Int nodeSize := 1.shiftl(bitWidth)
-  internal static const Int indexMask := nodeSize - 1
-  internal static const Int inverseMask := indexMask.not
-  internal static const Node empty := Node()
-  
-  new make(Obj?[] objs := [,]) { this.objs = objs }
-  const Obj?[] objs
-  
-  internal static Node fromList(Obj?[] list, Int from := 0)
-  {
-    Node(list[from..<list.size.min(from + Node.nodeSize)])
-    
-//    arr := Node.defList.dup
-//    for(i := from; i < from + Node.nodeSize && i < list.size; i++)
-//      arr[i - from] = list[i] 
-//    return Node(arr)
-  }
-}
-
-
-
-**************************************************************************
-** CList
-**************************************************************************
-internal const class CList : ConstList
-{
-  //////////////////////////////////////////////////////////////////////////
-  // Constructor and fields
-  //////////////////////////////////////////////////////////////////////////
-  private const Node root
-  private const Obj?[] tail
-  private const Int tailStart
-  private const Int depth
-  
-  internal new make(Int size, Node root, Obj?[] tail)
-  {
-    this.size = size
-    this.root = root
-    this.tail = tail
-    this.tailStart = size < Node.nodeSize ? 0 : (size - 1).and(Node.inverseMask)
-    this.depth = levelFromSize(size)
-  }
-
-  static CList createFromList(Obj?[] items)
-  {
-    //tail only
-    if(items.size <= Node.nodeSize) 
-    {
-      return CList(items.size, Node.empty, items)
-    }
-    
-    //so that we will always have a tail
-    size := items.size
-    nodeCount := (items.size - 1)/Node.nodeSize
-    tail := items[nodeCount * Node.nodeSize ..-1]
-    
-    items = items[0..<nodeCount * Node.nodeSize]
-
-    while(items.size > 1)
-    {
-      items = collapse(items)
-    }
-    
-    //now items is a list of nodes which should be just added to the root node
-    return CList(size, items.first, tail)
-  }
-
-  private static const Int level1Size := Node.nodeSize * Node.nodeSize + Node.nodeSize
-  private static Int levelFromSize(Int size)
-  {
-    level := 1
-    levelSize := level1Size
-    while(size > levelSize) 
-    {
-      levelSize = (levelSize - Node.nodeSize + 1) * Node.nodeSize
-      level++
-    }
-    return level;
-  }
   //////////////////////////////////////////////////////////////////////////
   // Overriden methods
   //////////////////////////////////////////////////////////////////////////
-  override const Int size
+  override Obj? peek() { this[-1] }
   
-  override IConstList push(Obj? obj) 
-  {
-    //room in tail
-    if(inTail(size)) return CList(size + 1, root, tail.dup.add(obj))
-
-    //full tail, push into tree
-    Node newRoot := Node.empty
-    tailNode := Node(tail)
-    //overflow root?
-    if(rootIsFull)
-      newRoot = Node(Obj?[root, newPath(depth, tailNode)])
-    else
-      newRoot = pushTail(depth, root, tailNode)
-    return CList(size + 1, newRoot, [obj])
-  }
-  
-  override IConstList pop()
-  {
-    if(size == 0) return this
-    if(size == 1) return empty
-    if(size - tailStart > 1) return CList(size - 1, root, tail[0..-2])
-    
-    newTail := arrayFor(size - 2)
-    newRoot := popTail(depth, root) ?: Node.empty
-    
-    if(depth > 1 && newRoot.objs[1] == null)
-    {
-      newRoot = newRoot.objs.first
-    }
-    return CList(size - 1, newRoot, newTail)
-  }
-
-  @Operator
-  override Obj? get(Int i) 
-  {
-    i = normalizeIndex(i)
-    return arrayFor(i)[nodeIndex(i)] 
-  }
-  
-  override IConstList set(Int i, Obj? val)
-  {
-    i = normalizeIndex(i)
-    return i >= tailStart ? 
-      CList(size, root, tail.dup.set(nodeIndex(i), val)) :
-      CList(size, doSet(depth, root, i, val), tail)
-  }
-  
-  override IConstList removeAt(Int i)
-  {
-    i = normalizeIndex(i)
-     return i >= tailStart ? 
-      CList(size - 1, root, tail.dup { it.removeAt(nodeIndex(i)) }) : 
-      super.removeAt(i)
-  }
-  
-  override IConstList insert(Int i, Obj? o)
-  {
-    i = normalizeIndex(i)
-    return i >= tailStart && inTail(size) ? 
-      CList(size + 1, root, tail.insert(nodeIndex(i), o)) : 
-      super.insert(i, o)
-  }
-  
-  //////////////////////////////////////////////////////////////////////////
-  // Tree manipulation
-  //////////////////////////////////////////////////////////////////////////
-  private Node? popTail(Int depth, Node node)
-  {
-    subIndex := nodeIndex(levelDown(size - 2, depth))
-    if(depth > 1)
-    {
-      newChild := popTail(depth - 1, node.objs[subIndex])
-      if(newChild == null && subIndex == 0) return null
-      
-      return setVal(node, subIndex, newChild)
-    }
-    
-    if(subIndex == 0) return null
-    
-    return setVal(node, subIndex, null)
-  }
-  
-  private Node pushTail(Int depth, Node parent, Node tail)
-  {
-    subIndex := nodeIndex(levelDown(size - 1, depth))
-    Node? nodeToInsert
-    if(depth == 1)
-    {
-      nodeToInsert = tail
-    }
-    else
-    {
-      child := getVal(parent, subIndex)
-      nodeToInsert = child != null ? pushTail(depth - 1, child, tail) : newPath(depth -1, tail)
-    }
-    return setVal(parent, subIndex, nodeToInsert)
-  }
-  
-  private static Node newPath(Int depth, Node node)
-  {
-    depth == 0 ? node : Node(Obj?[newPath(depth - 1, node)])
-  }
-  
-  private static Node doSet(Int depth, Node node, Int i, Obj? val)
-  {
-    if(depth == 0)
-      return setVal(node, nodeIndex(i), val)
-
-    subIndex := nodeIndex(levelDown(i, depth))
-    return setVal(node, subIndex, doSet(depth - 1, node.objs[subIndex], i, val))
-  }
-  
-  protected Obj?[] arrayFor(Int i)
-  {
-    if(i >= tailStart) return tail
-    node := root
-    depth.times { node = node.objs[nodeIndex(levelDown(i, (depth-it)))] }
-    return node.objs
-  }
-
-  
-  //////////////////////////////////////////////////////////////////////////
-  // Utility methods
-  //////////////////////////////////////////////////////////////////////////
-  private static Node setVal(Node node, Int index, Obj? val)
-  {
-    list := node.objs.dup
-    if(index >= list.size) list.size = index + 1
-    return Node(list.set(index, val))
-  }
-  
-  private static Obj? getVal(Node node, Int index)
-  {
-    node.objs.getSafe(index, null)
-  }
-  
-  private Bool inTail(Int index) { index - tailStart < Node.nodeSize }
-  private Bool rootIsFull() { size > levelUp(1, depth + 1) }
-  
-  private static Int levelDown(Int val, Int level := 1) { val.shiftr(level * Node.bitWidth) }
-  private static Int levelUp(Int val, Int level := 1) { val.shiftl(level * Node.bitWidth) }
-  private static Int nodeIndex(Int i) { i.and(Node.indexMask) }
-  
-
   **
-  ** Packs given items to nodes
+  ** Default implementation uses `#size` and `#get`
   ** 
-  private static Obj?[] collapse(Obj?[] items)
+  override Obj? eachWhile(|Obj?, Int->Obj?| f)
   {
-    nodeCount := (items.size + Node.nodeSize - 1)/Node.nodeSize
-    result := Obj?[,]
-    nodeCount.times
+    for(i := 0; i < size; i++) 
     {
-      result.add(Node.fromList(items, it * Node.nodeSize))
+      result := f(this[i], i)
+      if(result != null) return result
     }
-    return result
+    return null
   }
   
-  override Obj?[] toList()
+  **
+  ** Default implementation uses `#size` and `#get`
+  ** 
+  override Obj? eachrWhile(|Obj?, Int->Obj?| f)
   {
-    result := List.makeObj(size)
-    allObjs(root, result)
-    result.addAll(tail)
-    return result
+    for(i := size - 1; i >= 0; i--)
+    {
+      result := f(this[i], i)
+      if(result != null) return result
+    }
+    return null
+  }
+  //////////////////////////////////////////////////////////////////////////
+  // Abstract methods
+  //////////////////////////////////////////////////////////////////////////
+  **
+  ** Get is used to return the item at the specified the index.  A
+  ** negative index may be used to access an index from the end of the
+  ** list.  For example get(-1) is translated into get(size()-1).  The
+  ** get method is accessed via the [] shortcut operator.  Throw
+  ** IndexErr if index is out of range.  This method is readonly safe.
+  **
+  @Operator abstract Obj? get(Int index)
+  
+  **
+  ** Sets item
+  ** 
+  @Operator abstract ConstList set(Int index, Obj? item)
+  
+  **
+  ** Overriding to change return type
+  ** 
+  override abstract ConstList push(Obj? o)
+  
+  //////////////////////////////////////////////////////////////////////////
+  // Convenience methods
+  //////////////////////////////////////////////////////////////////////////
+  
+  **
+  ** Adds item to the end of the list. Same as `#push`
+  ** 
+  This add(Obj? item) { push(item) }
+  
+  Obj? first() { isEmpty ? null : this[0] }
+  
+  Obj? last() { isEmpty ? null : this[-1] }
+  
+  **
+  ** Takes first 'size.min(count)' items from the list
+  ** Default implementation routes to #getRange
+  ** 
+  virtual ConstList take(Int count) { this[0..<count.min(size)] }
+  
+  **
+  ** Drops first 'count' items from the list
+  ** If count is greater size, returns empty list
+  ** 
+  virtual ConstList drop(Int count) { count >= size ? empty : this[count..-1] }
+  
+  **
+  ** Adds all elements from a given list 
+  ** Default implementation just adds all items one-by-one,
+  ** though inheritors can override in order to provide
+  ** more efficient impl
+  ** 
+  virtual ConstList addAll(Obj?[] objs)
+  {
+    objs.reduce(this) |ConstList r, Obj? item -> ConstList| { r.add(item) }
   }
   
-  private static Void allObjs(Node node, Obj?[] acc)
+  **
+  ** Return sorted list.  If a method is provided
+  ** it implements the comparator returning -1, 0, or 1.  If the
+  ** comparator method is null then sorting is based on the
+  ** value's <=> operator (shortcut for 'compare' method).  Return this.
+  ** Throw ReadonlyErr if readonly.
+  **
+  ** Example:
+  **   s := ["candy", "ate", "he"]
+  **
+  **   s.sort
+  **   // s now evaluates to [ate, candy, he]
+  **
+  **   s.sort |Str a, Str b->Int| { return a.size <=> b.size }
+  **   // s now evaluates to ["he", "ate", "candy"]
+  **
+  virtual ConstList sort(|Obj?, Obj? -> Int|? c := null)
   {
-    if(node.objs.isEmpty) return
-    if(node.objs.first isnot Node) //leaf node
-    {
-      acc.addAll(node.objs)
-      return
-    }
-    node.objs.each { allObjs(it, acc) }
+    convertFromList(toList.sort(c)) 
   }
-}
+  
+  //////////////////////////////////////////////////////////////////////////
+  // Internal utility methods
+  //////////////////////////////////////////////////////////////////////////
+  protected Int normalizeIndex(Int i)
+  {
+    i < 0 ? i + size : (i >= size ? throw err(i): i)
+  }
+  
+  **
+  ** Converts range to exclusive range with resolved indices
+  ** 
+  protected Range normalizeRange(Range r)
+  {
+    from := r.start;
+    if (from < 0) from = size + from;
+    if (from > size) throw err(from);
+    
+    to := r.end;
+    if (to < 0) to = size + to;
+    if (r.exclusive) to--;
+    if (to >= size) throw err(to);
+    
+    return from..to
+  }
 
+  protected IndexErr err(Int i) { IndexErr("Index $i is not in 0..<$size range") }
+
+  // covariance overrides
+  override ConstList map(|Obj?, Int -> Obj?| f)  { ConstColl.super.map(f) }
+  override ConstList exclude(|Obj?, Int -> Bool| f) { ConstColl.super.exclude(f) }
+  override ConstList findAll(|Obj?, Int -> Bool| f) { ConstColl.super.findAll(f) }
+  override ConstList findType(Type t) { ConstColl.super.findType(t) }
+  
+}

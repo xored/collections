@@ -160,7 +160,7 @@ internal const class BitmapNode : HashMapNode
     return this
   }
   
-  override IConstSeq? entries() { BitmapNodeSeq.create(objs, 0, null) }
+  override ConstSeq? entries() { BitmapNodeSeq.create(objs, 0, null) }
   
   ** Index of a given bit in current objs array
   private Int index(Int bit) { bitCount(bitmap.and(bit-1)) }
@@ -174,7 +174,7 @@ internal const class BitmapNodeSeq : MapSeq
   const Obj?[] vals
   const MapSeq? nextSeq
   
-  private new make(Obj?[] vals, Int start, IConstSeq? nextSeq)
+  private new make(Obj?[] vals, Int start, ConstSeq? nextSeq)
   {
     this.start = start
     this.vals = vals
@@ -194,7 +194,7 @@ internal const class BitmapNodeSeq : MapSeq
     return create(vals, start + 2, null)
   }
   
-  static MapSeq? create(Obj?[] vals, Int i, IConstSeq? s) {
+  static MapSeq? create(Obj?[] vals, Int i, ConstSeq? s) {
     if(s != null)
       return BitmapNodeSeq(vals, i, s)
     for(j := i; j < vals.size; j+=2) 

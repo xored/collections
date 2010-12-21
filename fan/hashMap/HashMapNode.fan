@@ -19,7 +19,7 @@ internal const mixin HashMapNode
   
   abstract HashMapNode? remove(Int level, Int hash, Obj key, |Obj?|? f)
   
-  abstract IConstSeq? entries()
+  abstract ConstSeq? entries()
   
   //////////////////////////////////////////////////////////////////////////
   // Bit utils

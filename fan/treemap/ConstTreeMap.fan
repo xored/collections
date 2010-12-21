@@ -7,7 +7,7 @@
 //   Ilya Sherenkov Dec 17, 2010 - Update
 //
 
-const class ConstTreeMap : IConstMap, Sorted 
+const class ConstTreeMap : ConstMap, Sorted 
 {
   //////////////////////////////////////////////////////////////////////////
   // Constructor and fields
@@ -41,7 +41,7 @@ const class ConstTreeMap : IConstMap, Sorted
   //////////////////////////////////////////////////////////////////////////
   // Overriden methods
   //////////////////////////////////////////////////////////////////////////
-  override This set(Obj? key, Obj? val)
+  override ConstMap set(Obj? key, Obj? val)
   {
     if(key == null) throw ArgErr("Null keys are not supported by tree map")
     Leaf found := Leaf()
@@ -66,7 +66,7 @@ const class ConstTreeMap : IConstMap, Sorted
   
   override MapSeq sorted(Bool asc) { root == null ? MapSeq.empty : TreeNodeSeq.create(root, asc) }
   
-  override This remove(Obj? key, |Obj?|? callback := null) 
+  override ConstMap remove(Obj? key, |Obj?|? callback := null) 
   { 
     Leaf found := Leaf()
     t := removeNode(root, key ?: throw nullKeyErr, found)
