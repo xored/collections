@@ -64,11 +64,27 @@ class ListTest : Test
   }
   Void testGetRange()
   {
-    count := 1000000
+    count := 100
     list := ConstList.fromList((0..<count).toList)
     verifyEq(list[0..0].toList, Obj?[0])
     verifyEq(list[0..-1].size, count)
-    //list := ConstList.fromList()
+    
+    verifyEq(list[count / 2], count / 2)
+    
+    list = list.removeAt(count / 2)
+    verify(list is ChunkedList)
+    verifyEq(list.size, count - 1)
+    verify(list[0..count/2-1] is SubList)
+    verify(list[count/2..count-2] is SubList)
+
+    verifyEq(list[0..1].toList, Obj?[0, 1])
+    verifyEq(list[0..count-2].toList, list.toList)
+    
+    verifyErr(IndexErr#) { list = list[0..count] }
+    
+    verifyEq(list[(count / 2 - 1)..(count / 2 - 1)].toList, Obj?[(count / 2 - 1)])
+    verifyEq(list[(count / 2)..(count / 2)].toList, Obj?[(count / 2 + 1)])
+    verifyEq(list[(count / 2 - 1)..(count / 2)].toList, Obj?[(count / 2 - 1), (count / 2 + 1)])
   }
   
   Void testRemoveAt()

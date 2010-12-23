@@ -23,10 +23,21 @@ internal const class SubList : ConstList
   private const Int to
   new make(ConstList parent, Int from, Int to)
   {
-    this.parent = parent
-    this.from = from
-    this.to = to
-    this.size = to - from
+    if (parent isnot SubList)
+    {
+      this.parent = parent
+      this.from = from
+      this.to = to
+      this.size = to - from
+    }
+    else
+    {
+      SubList sub := parent
+      this.parent = sub.parent
+      this.from = sub.from + from
+      this.to = sub.from + to
+      this.size = to - from
+    }
   }
   
   //////////////////////////////////////////////////////////////////////////
@@ -94,10 +105,18 @@ internal const class ChunkedList : ConstList
     this.indices = rs
   }
   
+  private static ConstList toCList(ConstList[] chunks) { CList.createFromList(ChunkedList(chunks).toList) }
+  
+  private static Int countMaxChunksSize(Int allSize)
+  {  // set max chunks size to sqrt of all chunk elements count
+    return allSize < Node.nodeSize ? 0 : allSize.toFloat.sqrt.round.toInt    
+  }
+  
   static ConstList create(ConstList[] chunks)
   {
     chunks = normalizeChunks(chunks)
-    return chunks.size > 1 ? ChunkedList(chunks) : chunks.first
+    maxChunksSize := countMaxChunksSize(chunks.reduce(0) |Int r, ConstList c -> Int| { r+=c.size })
+    return chunks.size == 1 ? chunks.first : (chunks.size < maxChunksSize ? ChunkedList(chunks) : toCList(chunks)) 
   }
   
   //////////////////////////////////////////////////////////////////////////
@@ -180,7 +199,7 @@ internal const class ChunkedList : ConstList
   ** 
   internal ConstList replaceChunk(Int chunkIndex, ConstList newChunk)
   {
-    create(chunks.dup[chunkIndex] = newChunk)    
+    ChunkedList.create(chunks.dup[chunkIndex] = newChunk)    
   }
   
   **
@@ -190,7 +209,7 @@ internal const class ChunkedList : ConstList
   {
     newChunks := chunks.dup
     newChunks.removeAt(chunkIndex)
-    return create(newChunks)    
+    return ChunkedList.create(newChunks)    
   }
 
   override ConstList removeAt(Int i)
@@ -216,4 +235,29 @@ internal const class ChunkedList : ConstList
     return replaceChunk(ri, ChunkedList.create([chunk.take(reli).push(o), chunk.drop(reli)]))
   }
   
+  @Operator override ConstList getRange(Range r)
+  {
+    r = normalizeRange(r)
+    riStart := index(indices, r.start)
+    riEnd := index(indices, r.end)
+    if (riStart == riEnd)
+    {
+      relStart := indices[riStart].start
+      return SubList(chunks[riStart], r.start - relStart, r.end - relStart + 1)    
+    }
+    else
+    {
+      relStart := indices[riStart].start
+      relEnd := indices[riEnd].start
+      newChunks := chunks.map |c, i|
+        {
+          if (i < riStart) return ConstList.empty
+          if (i == riStart) return r.start - relStart == 0 ? c : c.drop(r.start - relStart) 
+          if (i == riEnd) return r.end - relEnd + 1 == c.size ? c: c.take(r.end - relEnd + 1)
+          if (i > riEnd) return ConstList.empty
+          return c
+        }
+      return ChunkedList(newChunks)
+    }
+  }
 }
