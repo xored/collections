@@ -15,7 +15,8 @@ const mixin ConstList : ConstStack, ConstColl
   //////////////////////////////////////////////////////////////////////////
   // Static creation
   //////////////////////////////////////////////////////////////////////////
-  static const ConstList empty := CList(0, Node.empty, [,])
+  static const ConstList empty := CList.emptyCList 
+  
   static ConstList fromList(Obj?[] items) { CList.createFromList(items) }
 
   override ConstList convertFromList(Obj?[] list) { fromList(list) }
@@ -110,7 +111,7 @@ const mixin ConstList : ConstStack, ConstColl
   @Operator abstract ConstList set(Int index, Obj? item)
   
   **
-  ** Overriding to change return type
+  ** Pushes an object to the list. Same as `#add`
   ** 
   override abstract ConstList push(Obj? o)
   

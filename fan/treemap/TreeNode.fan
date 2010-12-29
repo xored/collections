@@ -9,7 +9,7 @@
 **
 ** Base class for Red-black tree nodes
 **
-internal abstract const class TreeNode : TreeUtils
+internal abstract const class TreeNode 
 {
   const Obj key
   new make(Obj key) { this.key = key }
@@ -23,8 +23,8 @@ internal abstract const class TreeNode : TreeUtils
   abstract TreeNode addLeft(TreeNode node)
   abstract TreeNode addRight(TreeNode node)
   
-  virtual TreeNode balanceLeft(TreeNode p) { black(p.key, p.val, this, p.right) }
-  virtual TreeNode balanceRight(TreeNode p) { black(p.key, p.val, p.left, this) }
+  virtual TreeNode balanceLeft(TreeNode p) { TreeUtils.black(p.key, p.val, this, p.right) }
+  virtual TreeNode balanceRight(TreeNode p) { TreeUtils.black(p.key, p.val, p.left, this) }
   
   virtual Obj? val() { null }
 }

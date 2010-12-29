@@ -6,6 +6,8 @@
 //   Ivan Inozemtsev Dec 6, 2010 - Initial Contribution
 //
 
+using constArray 
+
 internal const class BitmapNode : HashMapNode
 {
   //////////////////////////////////////////////////////////////////////////
@@ -18,8 +20,8 @@ internal const class BitmapNode : HashMapNode
   ** Even indices contain either keys (and in this case item at corresponding odd index contains
   ** val) or nulls (in this case odd index contains child node)
   ** 
-  const Obj?[] objs
-  new make(Int bitmap := 0, Obj?[] objs := [,]) 
+  const ConstArray objs
+  new make(Int bitmap := 0, ConstArray objs := ConstArray(0)) 
   {
     this.bitmap = bitmap
     this.objs = objs
@@ -117,19 +119,21 @@ internal const class BitmapNode : HashMapNode
           j += 2  
         }
       }
-      return ArrayNode(n + 1, nodes)
+      return ArrayNode(n + 1, ConstArray.fromList(nodes))
     }
     
     //less than half of node is occupied
     //we need to insert new key-val pair into our objs list
     //allocating list with size multiplied by two
-    newObjs := List.makeObj((n + 1) * 2)
+    newObjs := ConstArray((n + 1) * 2)
     //1st part of array
-    newObjs.addAll(objs[0..<keyIndex])
+    newObjs = ConstArray.arrayCopy(objs, 0, newObjs, 0, keyIndex)
+//    newObjs.addAll(objs[0..<keyIndex])
     //new pair
-    newObjs.add(key).add(val)
+    newObjs = newObjs.set(keyIndex, key).set(keyIndex + 1,val)
     //2nd part of array (if any)
-    newObjs.addAll(objs[keyIndex..-1])
+    //newObjs.addAll(objs[keyIndex..-1])
+    newObjs = ConstArray.arrayCopy(objs, keyIndex, newObjs, keyIndex + 2, objs.size - keyIndex)
     leaf.val = leaf //unclear
     return BitmapNode(bitmap.or(bit), newObjs)
     
@@ -171,10 +175,10 @@ internal const class BitmapNode : HashMapNode
 internal const class BitmapNodeSeq : MapSeq
 {
   const Int start
-  const Obj?[] vals
+  const ConstArray vals
   const MapSeq? nextSeq
   
-  private new make(Obj?[] vals, Int start, ConstSeq? nextSeq)
+  private new make(ConstArray vals, Int start, ConstSeq? nextSeq)
   {
     this.start = start
     this.vals = vals
@@ -194,7 +198,7 @@ internal const class BitmapNodeSeq : MapSeq
     return create(vals, start + 2, null)
   }
   
-  static MapSeq? create(Obj?[] vals, Int i, ConstSeq? s) {
+  static MapSeq? create(ConstArray vals, Int i, ConstSeq? s) {
     if(s != null)
       return BitmapNodeSeq(vals, i, s)
     for(j := i; j < vals.size; j+=2) 

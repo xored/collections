@@ -6,12 +6,14 @@
 //   Ivan Inozemtsev Dec 6, 2010 - Initial Contribution
 //
 
+using constArray
+
 internal const class CollisionNode : HashMapNode
 {
   const Int keyHash
   const Int size
-  const Obj?[] objs
-  new make(Int keyHash, Int size, Obj?[] objs)
+  const ConstArray objs
+  new make(Int keyHash, Int size, ConstArray objs)
   {
     this.keyHash = keyHash
     this.size = size
@@ -30,7 +32,7 @@ internal const class CollisionNode : HashMapNode
   override HashMapNode put(Int level, Int hash, Obj key, Obj? val, Leaf leaf) 
   {
     if(hash != this.keyHash)
-      return BitmapNode(bitpos(hash, level), [null, this])
+      return BitmapNode(bitpos(hash, level), ConstArray.fromList([null, this]))
     idx := findIndex(key);
     if(idx != -1) {
       if(objs[idx + 1] == val) return this //vals equal
@@ -38,7 +40,7 @@ internal const class CollisionNode : HashMapNode
     }
     
     leaf.val = leaf
-    return CollisionNode(hash, size + 1, objs.dup.add(key).add(val));
+    return CollisionNode(hash, size + 1, objs.add(key).add(val));
   }
   
   override HashMapNode? remove(Int level, Int hash, Obj key, |Obj?|? f) 

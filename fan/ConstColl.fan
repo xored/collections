@@ -7,7 +7,7 @@
 //   Ilya Sherenkov Dec 17, 2010 - Update
 //
 
-
+ 
 **
 ** Provides lot of list-like methods like `#findAll`, `#exclude` and so on
 ** 

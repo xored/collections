@@ -6,11 +6,13 @@
 //   Ivan Inozemtsev Dec 6, 2010 - Initial Contribution
 //
 
+using constArray
+
 internal const class ArrayNode : HashMapNode
 {
   const Int size
-  const HashMapNode?[] nodes
-  new make(Int size, HashMapNode?[] nodes)
+  const ConstArray nodes
+  new make(Int size, ConstArray nodes)
   {
     this.size = size
     this.nodes = nodes
@@ -18,14 +20,14 @@ internal const class ArrayNode : HashMapNode
   
   override Obj? find(Int level, Int hash, Obj key) 
   { 
-    node := nodes[mask(hash, level)]
+    node := (HashMapNode?) nodes[mask(hash, level)]
     if(node == null) return NotFound.instance
     return node.find(level + 1, hash, key)
   }
   override HashMapNode put(Int level, Int hash, Obj key, Obj? val, Leaf leaf) 
   { 
     idx := mask(hash, level)
-    node := nodes[idx]
+    node := (HashMapNode?) nodes[idx]
     if(node == null)
       return ArrayNode(size + 1, 
         cloneAndSet(
@@ -41,7 +43,7 @@ internal const class ArrayNode : HashMapNode
   override HashMapNode? remove(Int level, Int hash, Obj key, |Obj?|? f) 
   { 
     idx := mask(hash, level)
-    node := nodes[idx]
+    node := (HashMapNode?) nodes[idx]
     if(node == null) return this
     newNode := node.remove(level + 1, hash, key, f)
     if(newNode === node) return this
@@ -72,7 +74,7 @@ internal const class ArrayNode : HashMapNode
         newArray[j] = nodes[i]
         bitmap = bitmap.or(1.shiftl(i))
       }
-    return BitmapNode(bitmap, newArray)
+    return BitmapNode(bitmap, ConstArray.fromList(newArray))
   }
   
   override ConstSeq? entries() { ArrayNodeSeq.create(nodes, 0, null) }
@@ -80,24 +82,24 @@ internal const class ArrayNode : HashMapNode
 
 internal const class ArrayNodeSeq : MapSeq
 {
-  const HashMapNode?[] nodes
+  const ConstArray nodes
   const Int i
   const MapSeq seq
-  private new make(HashMapNode?[] nodes, Int i, MapSeq seq)
+  private new make(ConstArray nodes, Int i, MapSeq seq)
   {
     this.nodes = nodes
     this.i = i
     this.seq = seq
   }
   
-  static MapSeq? create(HashMapNode?[] nodes, Int i, ConstSeq? seq)
+  static MapSeq? create(ConstArray nodes, Int i, ConstSeq? seq)
   {
     if(seq != null) return ArrayNodeSeq(nodes, i, seq)
     for(j := i; j < nodes.size; j++)
     {
       if(nodes[j] != null) 
       {
-        ns := nodes[j].entries
+        ns := ((HashMapNode?) nodes[j]).entries
         if(ns != null) return ArrayNodeSeq(nodes, j+1, ns)
       }
     }

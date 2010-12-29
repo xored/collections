@@ -12,8 +12,14 @@ const mixin ConstStack
 
   abstract Obj? peek()
   
+  **
+  ** Pops an object from the stack
+  ** 
   abstract ConstStack pop() 
   
+  **
+  ** Pushes an object to the stack
+  ** 
   abstract ConstStack push(Obj? val) 
 
   virtual Bool isEmpty() { size == 0 }
