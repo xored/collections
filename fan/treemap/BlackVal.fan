@@ -10,6 +10,7 @@
 **
 ** 
 **
+@Js
 internal const class BlackVal : Black
 {
   override const Obj? val

@@ -7,6 +7,7 @@
 //   Ilya Sherenkov Dec 17, 2010 - Update
 //
 
+@Js
 class MapTest : Test
 {
   Void testTrivialPositive()
@@ -112,8 +113,8 @@ class MapTest : Test
   
   Void testRandomFill()
   {
-    verifyRandomFill(ConstHashMap.empty, 10000)
-    verifyRandomFill(ConstTreeMap.empty, 10000)
+    verifyRandomFill(ConstHashMap.empty, 1000)
+    verifyRandomFill(ConstTreeMap.empty, 1000)
   }
   Void verifyRandomFill(ConstMap map, Int size)
   {
@@ -180,6 +181,7 @@ class MapTest : Test
   
 }
 
+@Js
 internal const class Collider
 {
   const Int a

@@ -11,14 +11,15 @@
 **
 ** Provides lot of list-like methods like `#findAll`, `#exclude` and so on
 ** 
+@Js
 const mixin ConstColl
 {
 
   **
   ** Iterates every item in the collection starting with index 0 up to
   ** size-1 until the function returns non-null.  If function
-  ** returns non-null, then break the iteration and return the
-  ** resulting object.  Return null if the function returns
+  ** returns non-null, then eachWhile breaks the iteration and returns the
+  ** resulting object.  Returns null if the function returns
   ** null for every item.  
   **
   abstract Obj? eachWhile(|Obj?, Int -> Obj?| func)
@@ -38,9 +39,9 @@ const mixin ConstColl
   **
   Void each(|Obj?, Int| f) { eachWhile |o, i| { f(o, i); return null } }
   **
-  ** Reverse `eachWhile`.  Iterate every item in the list starting
-  ** with size-1 down to 0.  If the function returns non-null, then
-  ** break the iteration and return the resulting object.  Return
+  ** Reverse `eachWhile`.  Iterates every item in the list starting
+  ** with size-1 down to 0.  If the function returns non-null, then eachrWhile
+  ** breaks the iteration and returns the resulting object.  Returns
   ** null if the function returns null for every item.  
   ** Default implementation uses `#each` method to populate temporary
   ** `sys::List` internally, so it is strongly
@@ -54,7 +55,7 @@ const mixin ConstColl
   }
   
   **
-  ** Reverse each - call the specified function for every item in
+  ** Reverse each - calls the specified function for every item in
   ** the list starting with index size-1 and decrementing down
   ** to 0.  This method is readonly safe.
   **
@@ -95,7 +96,7 @@ const mixin ConstColl
   Void each2(|Obj?, Obj?, Int| f) { eachn(2, f) }
   
   **
-  ** Create a new list which is the result of calling 'f' for
+  ** Creates a new list which is the result of calling 'f' for
   ** every item in this list.  
   **
   ** Example:
@@ -131,8 +132,8 @@ const mixin ConstColl
   }
   
   **
-  ** Return true if c returns true for all of the items in
-  ** the list.  If the list is empty, return true. 
+  ** Returns true if c returns true for all of the items in
+  ** the list.  If the list is empty, returns true. 
   **
   ** Example:
   **   list := ["ant", "bear"]
@@ -145,8 +146,8 @@ const mixin ConstColl
   }
   
   **
-  ** Return true if c returns true for any of the items in
-  ** the list.  If the list is empty, return false. 
+  ** Returns true if c returns true for any of the items in
+  ** the list.  If the list is empty, returns false. 
   **
   ** Example:
   **   list := ["ant", "bear"]
@@ -159,8 +160,8 @@ const mixin ConstColl
   }
   
   **
-  ** Return a new list containing the items for which c returns
-  ** false.  If c returns true for every item, then return an
+  ** Returns a new list containing the items for which c returns
+  ** false.  If c returns true for every item, then returns an
   ** empty list.  The inverse of this method is `#findAll`.  This
   ** method is readonly safe.
   **
@@ -173,6 +174,16 @@ const mixin ConstColl
     findAll |v,i| { !f(v, i) }
   }
   
+  **
+  ** Returns a new list containing the items for which c returns
+  ** true.  If c returns false for every item, then returns an
+  ** empty list.  The inverse of this method is `#exclude`.  This
+  ** method is readonly safe.
+  **
+  ** Example:
+  **   list := [0, 1, 2, 3, 4]
+  **   list.findAll |Int v->Bool| { return v%2!=0 } => [1, 3]
+  **
   virtual ConstColl findAll(|Obj?, Int -> Bool| f)
   {
     result := [,]
@@ -181,8 +192,8 @@ const mixin ConstColl
   }
 
   **
-  ** Return the first item in the list for which c returns true.
-  ** If c returns false for every item, then return null.  
+  ** Returns the first item in the list for which c returns true.
+  ** If c returns false for every item, then returns null.  
   **
   ** Example:
   **   list := [0, 1, 2, 3, 4]
@@ -192,9 +203,9 @@ const mixin ConstColl
   Obj? find(|Obj?, Int -> Bool| f) { eachWhile |v, i| { f(v, i) ? v : null} }
   
   **
-  ** Return the first item in the list for which c returns true
+  ** Returns the first item in the list for which c returns true
   ** and return the item's index.  If c returns false for every
-  ** item, then return null. 
+  ** item, then returns null. 
   **
   ** Example:
   **   list := [5, 6, 7]
@@ -204,7 +215,7 @@ const mixin ConstColl
   Int findIndex(|Obj?, Int -> Bool| f) { eachWhile |v, i| { f(v, i) ? i : null } }
   
   **
-  ** Return a new list containing all the items which are an instance
+  ** Returns a new list containing all the items which are an instance
   ** of the specified type such that item.type.fits(t) is true.  Any null
   ** items are automatically excluded.  If none of the items are instance
   ** of the specified type, then an empty list is returned.  The returned
@@ -217,10 +228,10 @@ const mixin ConstColl
   virtual ConstColl findType(Type t) { findAll { it?.typeof?.fits(t) ?: false } }
   
   **
-  ** Return the minimum value of the list.  If c is provided, then it
+  ** Returns the minimum value of the list.  If c is provided, then it
   ** implements the comparator returning -1, 0, or 1.  If c is null
   ** then the <=> operator is used (shortcut for compare method).  If
-  ** the list is empty, return null.  This method is readonly safe.
+  ** the list is empty, returns null.  This method is readonly safe.
   **
   ** Example:
   **   list := ["albatross", "dog", "horse"]
@@ -238,10 +249,10 @@ const mixin ConstColl
   }
   
   **
-  ** Return the maximum value of the list.  If c is provided, then it
+  ** Returns the maximum value of the list.  If c is provided, then it
   ** implements the comparator returning -1, 0, or 1.  If c is null
   ** then the <=> operator is used (shortcut for compare method).  If
-  ** the list is empty, return null.  This method is readonly safe.
+  ** the list is empty, returns null.  This method is readonly safe.
   **
   ** Example:
   **   list := ["albatross", "dog", "horse"]

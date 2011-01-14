@@ -7,12 +7,14 @@
 
 using constArray
 
+@Js
 internal const class NotFound
 {
   private new make() {}
   static const NotFound instance := NotFound()
 }
 
+@Js
 internal const mixin HashMapNode
 {
   abstract Obj? find(Int level, Int hash, Obj key)
@@ -82,11 +84,6 @@ internal const mixin HashMapNode
       .put(level, key2hash, key2, val2, leaf)
   }
   
-//  static Obj? removePair(Obj?[] objs, Int idx)
-//  {
-//    List.makeObj(objs.size - 2).addAll(objs[0..<2*idx]).addAll(objs[(2*idx+2)..-1])
-//  }
-
   static ConstArray removePair(ConstArray objs, Int idx)
   {
     result := ConstArray(objs.size - 2)

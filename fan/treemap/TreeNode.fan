@@ -9,6 +9,7 @@
 **
 ** Base class for Red-black tree nodes
 **
+@Js
 internal abstract const class TreeNode 
 {
   const Obj key

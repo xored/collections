@@ -10,6 +10,7 @@
 **
 ** Sequence iterating on tree node
 **
+@Js
 internal const class TreeNodeSeq : MapSeq
 {
   private new make(ConstStack stack, Bool asc)

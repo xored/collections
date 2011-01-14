@@ -1,4 +1,4 @@
-
+@Js
 class BitcountTest : Test
 {
   Void test1()

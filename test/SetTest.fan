@@ -6,6 +6,7 @@
 //   Ilya Sherenkov Dec 17, 2010 - Initial Contribution
 //
 
+@Js
 class SetTest : Test
 {
   Void testSimple()
@@ -145,6 +146,8 @@ class SetTest : Test
   {
     doTestEach(ConstTreeSet())
     doTestEach(ConstHashSet())
+    doTestZero(ConstTreeSet())
+    doTestZero(ConstHashSet())
   }
   Void doTestEach(ConstSet emptySet)
   {
@@ -155,4 +158,12 @@ class SetTest : Test
     
     verifyEq(sum, (N) * (N - 1) / 2)
   }
+
+  Void doTestZero(ConstSet emptySet)
+  {
+    sum := 0
+    emptySet.each |item| { sum += (Int) item }
+    verifyEq(sum, 0)
+  }
+
 }

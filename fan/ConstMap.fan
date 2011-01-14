@@ -7,24 +7,51 @@
 //   Ilya Sherenkov Dec 17, 2010 - Update
 //
 
+**
+** Entry of a const map
+** 
+@Js
 const class MapEntry
 {
+  **
+  ** Entry of a const map key:value constructor
+  ** 
   new make(Obj? key, Obj? val) 
   { 
     this.key = key
     this.val = val 
   }
+  **
+  ** Mapped key
+  ** 
   const Obj? key
+  **
+  ** Mapped value
+  ** 
   const Obj? val
 }
 
+**
+** Constant sequence of map entries
+** 
+@Js
 abstract const class MapSeq : ConstSeq
 {
+  **
+  ** Current map entry of the const sequence
+  ** 
   abstract override MapEntry? val()
+  **
+  ** The rest of the const sequence
+  ** 
   abstract override MapSeq? next() 
+  **
+  ** Empty constant sequence of map entries
+  ** 
   static const MapSeq empty := EmptyMapSeq.instance
 }
 
+@Js
 internal const class MapEntrySeq: MapSeq
 {
   override const MapEntry? val := null
@@ -36,6 +63,7 @@ internal const class MapEntrySeq: MapSeq
   }
 }
 
+@Js
 internal const class EmptyMapSeq : MapSeq, EmptySeq
 {
   private new make() {}
@@ -44,6 +72,7 @@ internal const class EmptyMapSeq : MapSeq, EmptySeq
   override const MapSeq? next := null
 }
 
+@Js
 internal const class NullHeadMapEntrySeq : MapSeq
 {
   private const MapSeq nextSeq
@@ -59,6 +88,7 @@ internal const class NullHeadMapEntrySeq : MapSeq
   override MapSeq? next() { nextSeq }
 }
 
+@Js
 internal const class KeySeq : ConstSeq
 {
   private const MapSeq seq
@@ -71,6 +101,7 @@ internal const class KeySeq : ConstSeq
   }
 }
 
+@Js
 internal const class ValSeq : ConstSeq
 {
   private const ConstSeq seq
@@ -86,36 +117,41 @@ internal const class ValSeq : ConstSeq
   }
 }
 
+@Js
 internal class Leaf
 {
   Obj? val
   new make(Obj? val := null) { this.val = val }
 }
 
+@Js
 const mixin ConstMap: ConstColl
 {
   //////////////////////////////////////////////////////////////////////////
   // Abstract methods
   //////////////////////////////////////////////////////////////////////////
+  **
+  ** Returns true when the given key 
+  ** is contained by the map
+  ** 
   abstract Bool containsKey(Obj? key)
   
   **
-  ** Associates given key with value.
-  ** This method returns 'This' because return type depends
-  ** on concrete impl - TreeMap should return TreeMap and so on
+  ** Associates given key with the value.
+  ** This method returns the same type 
+  ** on concrete impl - ConstTreeMap returns ConstTreeMap and so on
   ** 
   @Operator abstract ConstMap set(Obj? key, Obj? val)
   
   **
-  ** Returns value at given index. If item is not found,
-  ** returns def. If def is null, returns value at null key
+  ** Returns value at a given index. If an item is not found,
+  ** returns def. If def is null, returns the value at null key
   ** 
   @Operator abstract Obj? get(Obj? key, Obj? def := null)
   
   **
-  ** Create copy map with removed the key/value pair identified by the specified key
-  ** from the map. If the key was not mapped
-  ** then return null. If func is specified,
+  ** Create a copy of the map with removed key/value pair identified by the key specified.
+  ** If the key specified was not mapped then returns null. If func is specified,
   ** it will be called with a given param,
   ** so scenario like this is possible:
   **   Obj? val := null 
@@ -131,13 +167,22 @@ const mixin ConstMap: ConstColl
 
   override Obj? eachWhile(|Obj?, Int -> Obj?| func)
   {
-    return entries.eachWhile(func)
+    return size == 0 ? null : entries.eachWhile(func)
   }
   
+  **
+  ** Sequence of map entries keys
+  ** 
   virtual ConstSeq keys() { KeySeq(entries) }
   
+  **
+  ** Sequence of map entries values
+  ** 
   virtual ConstSeq vals() { ValSeq(entries) }
 
+  **
+  ** The size of the map
+  ** 
   abstract Int size()
   //////////////////////////////////////////////////////////////////////////
   // Integration methods
@@ -148,14 +193,15 @@ const mixin ConstMap: ConstColl
   ** 
   Obj:Obj? toMap()
   {
-    return entries.reduce([:]) |Obj:Obj? r, MapEntry entry -> Obj:Obj?| 
-    {
-      if (entry.key == null)
-        r.def = entry.val 
-      else 
-        r.add(entry.key, entry.val)
-      return r
-    }
+    return size == 0 ? [:] :
+      entries.reduce([:]) |Obj:Obj? r, MapEntry entry -> Obj:Obj?| 
+      {
+        if (entry.key == null)
+          r.def = entry.val 
+        else 
+          r.add(entry.key, entry.val)
+        return r
+      }
   }
   
   // covariance overrides

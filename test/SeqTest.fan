@@ -7,6 +7,7 @@
 //   Ilya Sherenkov Dec 17, 2010 - Update
 //
 
+@Js
 class SeqTest : Test
 {
   Void test1()

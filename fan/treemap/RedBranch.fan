@@ -10,6 +10,7 @@
 **
 ** Black non-leaf node without val 
 **
+@Js
 internal const class RedBranch : Red
 {
   override const TreeNode? left

@@ -5,7 +5,7 @@
 // History:
 //   Ilya Sherenkov Dec 17, 2010 - Initial Contribution
 //
-
+@Js
 const class ConstHashSet : ConstSet
 {
   override const ConstHashMap impl
@@ -20,5 +20,7 @@ const class ConstHashSet : ConstSet
   static ConstHashSet fromList(Obj?[] list) { ConstHashSet().addAll(list) }
   static ConstHashSet fromSeq(ConstSeq? seq) { ConstHashSet().addAllSeq(seq) }
   
-  override ConstSet convertFromList(Obj?[] list) { ConstHashSet().addAll(list) }   
+  override ConstSet convertFromList(Obj?[] list) { ConstHashSet().addAll(list) }
+  
+  override Int size() { ConstSet.super.size } // due to js dynamic invocation bug
 }

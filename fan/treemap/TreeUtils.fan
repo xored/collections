@@ -9,6 +9,7 @@
 **
 ** red-black tree manipulation library
 ** 
+@Js
 internal const class TreeUtils
 {
   static Err noImpl() { Err("not implemented") }

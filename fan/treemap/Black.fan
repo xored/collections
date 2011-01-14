@@ -9,6 +9,7 @@
 **
 ** Base class for black nodes
 ** 
+@Js
 internal const class Black : TreeNode
 {
   new make(Obj key) : super(key) {}

@@ -5,7 +5,7 @@
 // History:
 //   Ivan Inozemtsev Dec 8, 2010 - Initial Contribution
 //
-
+@Js
 const mixin ConstStack
 {
   abstract Int size()
@@ -28,6 +28,7 @@ const mixin ConstStack
 **
 ** 
 **
+@Js
 const class LinkedList : ConstStack
 {
   const ConstStack? tail

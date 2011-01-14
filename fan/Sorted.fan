@@ -10,9 +10,16 @@
 **
 ** Mixin for sorted collections
 **
+@Js
 const mixin Sorted
 {
-  ** Comparer, if null, then `Obj.compare` is used  
-  abstract |Obj, Obj -> Int|? comparator()
+  ** 
+  ** Items compare function, if null, then `Obj.compare` is used
+  **   
+  //abstract |Obj, Obj -> Int|? comparator()
+  abstract Obj? comparator() // instead of above due to Javascript bug
+  ** 
+  ** Returns a sorted sequence of collection items by the order requested 
+  **    
   abstract ConstSeq sorted(Bool asc)
 }

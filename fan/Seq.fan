@@ -7,10 +7,20 @@
 //   Ilya Sherenkov Dec 17, 2010 - Update
 //
 
+**
+** Constrant sequence mixin
+** 
+@Js
 const mixin ConstSeq : ConstColl
 {
+  **
+  ** Current value of the constrant sequence
+  ** 
   abstract Obj? val()
   
+  **
+  ** The rest of the constrant sequence
+  ** 
   abstract ConstSeq? next()
   
   override ConstSeq convertFromList(Obj?[] list) { ValsSeq(ConstList.fromList(list), null) }   
@@ -35,6 +45,10 @@ const mixin ConstSeq : ConstColl
   
 }
 
+**
+** Constant sequence with head Obj? value
+** 
+@Js
 const class HeadSeq : ConstSeq
 {
   override const Obj? val
@@ -46,6 +60,10 @@ const class HeadSeq : ConstSeq
   }
 }
 
+**
+** Constant sequence created from a list of values
+** 
+@Js
 const class ValsSeq : ConstSeq
 {
   private const ConstList vals
@@ -62,6 +80,10 @@ const class ValsSeq : ConstSeq
   override ConstSeq? next() { vals.size == 1 ? nextSeq : ValsSeq(vals.drop(1), nextSeq) }
 }
   
+**
+** Empty constant sequence
+** 
+@Js
 const mixin EmptySeq : ConstSeq
 {
   override Obj? eachWhile(|Obj? o, Int i->Obj?| f) { null }

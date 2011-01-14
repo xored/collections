@@ -10,6 +10,7 @@
 **
 ** Leaf red node of black-red tree 
 **
+@Js
 internal const class RedVal : Red
 {
   override const Obj? val

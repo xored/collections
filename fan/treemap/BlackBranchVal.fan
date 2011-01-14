@@ -10,6 +10,7 @@
 **
 ** Non-leaf black node with value
 **
+@Js
 internal const class BlackBranchVal : BlackBranch
 {
   override const Obj? val 

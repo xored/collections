@@ -10,6 +10,7 @@
 **
 ** Tests that conversions from/to list are performed correctly
 ** 
+@Js
 class ConversionTest : Test
 {
   Void testFromList()
@@ -19,8 +20,8 @@ class ConversionTest : Test
     verifyFromList(createList(100))
     verifyFromList(createList(1000))
     verifyFromList(createList(10000))
-    verifyFromList(createList(100000))
-    verifyFromList(createList(1000000))
+//    verifyFromList(createList(100000))
+//    verifyFromList(createList(1000000))
   }
   
   Void testToList()
@@ -30,8 +31,8 @@ class ConversionTest : Test
     verifyToList(ConstList.fromList(createList(100)))
     verifyToList(ConstList.fromList(createList(1000)))
     verifyToList(ConstList.fromList(createList(10000)))
-    verifyToList(ConstList.fromList(createList(100000)))
-    verifyToList(ConstList.fromList(createList(1000000)))
+//    verifyToList(ConstList.fromList(createList(100000)))
+//    verifyToList(ConstList.fromList(createList(1000000)))
   }
 
   private Void verifyToList(ConstList list)

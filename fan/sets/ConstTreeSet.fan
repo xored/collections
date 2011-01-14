@@ -6,9 +6,11 @@
 //   Ilya Sherenkov Dec 17, 2010 - Initial Contribution
 //
 
+@Js
 const class ConstTreeSet : ConstSet, Sorted
 {
-  override const |Obj, Obj -> Int|? comparator
+  //override const |Obj, Obj -> Int|? comparator
+  override const Obj? comparator // instead of above due to Javascript bug
   override const ConstTreeMap impl  
 
   // makeCopy override
@@ -34,7 +36,7 @@ const class ConstTreeSet : ConstSet, Sorted
   // eachrWhile optimization
   override Obj? eachrWhile(|Obj?, Int -> Obj?| func)
   {
-    return sorted(false).eachWhile(func)
+    return size==0 ? null : sorted(false).eachWhile(func)
   }  
   
   ** 
@@ -43,5 +45,7 @@ const class ConstTreeSet : ConstSet, Sorted
   override ConstSeq sorted(Bool asc) 
   { 
     return KeySeq(impl.sorted(asc)) 
-  }  
+  }
+  
+  override Int size() { ConstSet.super.size } // due to js dynamic invocation bug  
 }

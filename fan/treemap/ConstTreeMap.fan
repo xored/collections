@@ -6,25 +6,33 @@
 //   Ivan Inozemtsev Dec 7, 2010 - Initial Contribution
 //   Ilya Sherenkov Dec 17, 2010 - Update
 //
-
+@Js
 const class ConstTreeMap : ConstMap, Sorted 
 {
   //////////////////////////////////////////////////////////////////////////
   // Constructor and fields
   //////////////////////////////////////////////////////////////////////////
+  ** 
   ** Key comparer, if null, then `Obj.compare` is used
-  override const |Obj, Obj -> Int|? comparator
+  ** 
+  //override const |Obj, Obj -> Int|? comparator
+  override const Obj? comparator // instead of above due to Javascript bug
   private const TreeNode? root
   override const Int size
-  new make(|Obj, Obj -> Int|? comparator := null) : this.makeTree(0, null, comparator) {}
+  new make(|Obj, Obj -> Int|? comparator := null) : this.makeTree(0, null, comparator) { }
   
-  private new makeTree(Int size, TreeNode? root, |Obj, Obj -> Int|? comparator := null)
+//  private new makeTree(Int size, TreeNode? root, |Obj, Obj -> Int|? comparator := null)
+  private new makeTree(Int size, TreeNode? root, Obj? comparator := null) // instead of above due to Javascript bug
   {
     this.root = root
     this.comparator = comparator
     this.size = size
   }
   
+  static ConstTreeMap empty(|Obj, Obj -> Int|? c := null) { ConstTreeMap(c) } 
+  //////////////////////////////////////////////////////////////////////////
+  // Overriden methods
+  //////////////////////////////////////////////////////////////////////////
   override ConstTreeMap convertFromList(Obj?[] list) 
   {  
     result := ConstTreeMap(comparator)
@@ -34,13 +42,9 @@ const class ConstTreeMap : ConstMap, Sorted
   // eachrWhile optimization
   override Obj? eachrWhile(|Obj?, Int -> Obj?| func)
   {
-    return sorted(false).eachWhile(func)
+    return size == 0 ? null : sorted(false).eachWhile(func)
   }  
-  
-  static ConstTreeMap empty(|Obj, Obj -> Int|? c := null) { ConstTreeMap(c) } 
-  //////////////////////////////////////////////////////////////////////////
-  // Overriden methods
-  //////////////////////////////////////////////////////////////////////////
+
   override ConstMap set(Obj? key, Obj? val)
   {
     if(key == null) throw ArgErr("Null keys are not supported by tree map")
@@ -78,7 +82,7 @@ const class ConstTreeMap : ConstMap, Sorted
   //////////////////////////////////////////////////////////////////////////
   // Impl
   //////////////////////////////////////////////////////////////////////////
-  internal Int comp(Obj? a, Obj? b) { comparator?.call(a, b) ?: a <=> b }
+  internal Int comp(Obj? a, Obj? b) { comparator?->call(a, b) ?: a <=> b }
   private TreeNode? add(TreeNode? parent, Obj key, Obj? val, Leaf found)
   {
     if(parent == null) return val == null ? Red(key) : RedVal(key, val)

@@ -1,6 +1,6 @@
 **************************************************************************
 ** title:      Collections
-** author:     Ivan Inozemtsev
+** author:     Ivan Inozemtsev, Ilya Sherenkov
 ** created:    04 Dec 10
 ** copyright:  Copyright (c) 2010, xored software, Inc.
 ** license:    Licensed under the Eclipse Public License version 1.0
@@ -10,6 +10,13 @@ Overview [#overview]
 ********************
 Collections pod provides a set of general-purpose collections.
 The key feature of these collections is that all of them are const
-clasess which return a copy on modification. The basic idea is taken
-from Clojure
+clasess which return a copy on modification. The main trick is the fact, 
+that no full copy is produced, but the old link still references the old version 
+of the collection, i.e. a partial copy takes place to boost the speed of operations. 
+
+The basic idea is taken from Clojure
+
+Collection classes can be compiled to Javascript
+
+This pod uses constArray pod with the native array class for the performace needs.
 

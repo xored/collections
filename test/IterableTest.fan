@@ -1,4 +1,4 @@
-
+@Js
 class IterableTest : Test
 {
   Void testEachn()

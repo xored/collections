@@ -10,12 +10,13 @@
 **************************************************************************
 ** ConstList
 **************************************************************************
+@Js
 const mixin ConstList : ConstStack, ConstColl
 {
   //////////////////////////////////////////////////////////////////////////
   // Static creation
   //////////////////////////////////////////////////////////////////////////
-  static const ConstList empty := CList.emptyCList 
+  static const ConstList empty := CList.createEmptyCList
   
   static ConstList fromList(Obj?[] items) { CList.createFromList(items) }
 

@@ -9,6 +9,7 @@
 **
 ** Base class for red nodes
 ** 
+@Js
 internal const class Red : TreeNode
 {
   new make(Obj key) : super(key) {}

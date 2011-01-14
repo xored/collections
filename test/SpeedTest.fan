@@ -9,6 +9,7 @@
 **
 **
 **
+@Js
 class SpeedTest : Test
 {
   Void echoTimeFrom(Duration d, Str s := "")
@@ -25,8 +26,8 @@ class SpeedTest : Test
     doAddN(1000)
     doAddN(10000) 
     doAddN(100000)
-    doAddN(1000000)
-    doAddN(10000000)
+    //doAddN(1000000)
+    //doAddN(10000000)
   }
   
   Void verifyAfterAddN(ConstColl coll, Int n)
@@ -75,11 +76,13 @@ class SpeedTest : Test
       n.times { fCMap = fCMap.dup.add(it, it).toImmutable }
       echoTimeFrom(d, "map+toImmutable: ")
     }
-
+ 
     d = Duration.now
     n.times { hashSet = hashSet.add(it) }
     echoTimeFrom(d, "ConstHashSet: ")
     verifyAfterAddN(hashSet, n)
+    
+    verifyEq(hashSet.size, n)    
 
     d = Duration.now
     n.times { treeSet = treeSet.add(it) }
@@ -96,7 +99,7 @@ class SpeedTest : Test
     doRemoveN(1000)
     doRemoveN(10000)
     doRemoveN(100000)
-    doRemoveN(1000000)
+    //doRemoveN(1000000)
   }
  
   Void verifyAfterRemove(ConstColl coll, Int n)
@@ -170,7 +173,7 @@ class SpeedTest : Test
     doRemoveRandomN(1000)
     doRemoveRandomN(10000)
     doRemoveRandomN(100000)
-    doRemoveRandomN(1000000)
+    //doRemoveRandomN(1000000)
   }
   Void doRemoveRandomN(Int n)
   {

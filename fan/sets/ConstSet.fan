@@ -6,13 +6,14 @@
 //   Ilya Sherenkov Dec 17, 2010 - Initial Contribution
 //
 
+@Js
 const mixin ConstSet: ConstColl
 {
   abstract ConstMap impl()
 
   override Obj? eachWhile(|Obj?, Int -> Obj?| func)
   {
-    return items.eachWhile(func)
+    return size==0 ? null : items.eachWhile(func)
   }
 
   **
@@ -35,7 +36,7 @@ const mixin ConstSet: ConstColl
   **
   ** Returns the count of items in the set
   ** 
-  Int size() { impl.size }
+  virtual Int size() { impl.size }
   
   **
   ** Lists the set items in a const sequence

@@ -8,6 +8,7 @@
 
 using constArray 
 
+@Js
 internal const class BitmapNode : HashMapNode
 {
   //////////////////////////////////////////////////////////////////////////
@@ -96,7 +97,10 @@ internal const class BitmapNode : HashMapNode
       //so we convert current node to array node,
       //which contains just a list of nodes and uses leveled hash
       //as direct index in this list
-      nodes := List.makeObj(Node.nodeSize) { size = Node.nodeSize }
+      //nodes := List.makeObj(Node.nodeSize) { size = Node.nodeSize } will not work in js
+      nodes := Obj?[,]
+      nodes.capacity = Node.nodeSize
+      nodes.size = Node.nodeSize
       jdx := mask(hash, level)
       nodes[jdx] = empty.put(level + 1, hash, key, val, leaf)
       j := 0
@@ -171,7 +175,7 @@ internal const class BitmapNode : HashMapNode
 }
 
 
-
+@Js
 internal const class BitmapNodeSeq : MapSeq
 {
   const Int start

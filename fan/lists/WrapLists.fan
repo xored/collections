@@ -10,6 +10,7 @@
 **************************************************************************
 ** SubList
 **************************************************************************
+@Js
 internal const class SubList : ConstList
 {
 
@@ -81,6 +82,7 @@ internal const class SubList : ConstList
 ** Chunked list is a `ConstList#` impl
 ** which consists of several chunks
 ** 
+@Js
 internal const class ChunkedList : ConstList
 {
   
@@ -160,17 +162,41 @@ internal const class ChunkedList : ConstList
     flattenChunks(chunks).reduce([,]) |r, i| { collapse(r, i) }
   }
   
+
+  // due to the lack of Js implementation for List.flatten
+  public static List flatten(List list)
+  {
+    acc := Obj?[,] //List.makeObj(list.size*2) will not work in js
+    acc.capacity = list.size*2
+    doFlatten(list, acc)
+    return acc
+  }
+
+  private static Void doFlatten(List list, List acc)
+  {
+    for (Int i:=0; i<list.size; i++)
+    {
+      Obj? item := list[i]
+      if (item is List)
+        doFlatten((List)item, acc) 
+      else
+        acc.add(item)
+    }
+  }
+  
   **
   ** If chunk is `ChunkedList#`, returns its chunks
   ** otherwise returns '[chunk]'
   ** 
   private static ConstList[] flattenChunks(ConstList[] chunks)
   {
-    chunks.map |c| { 
+    result := chunks.map |c| { 
       c isnot ChunkedList ? 
         [c] :
         flattenChunks( ((ChunkedList)c).chunks ) 
-    }.flatten
+    }
+    // return result.flatten 
+    return flatten(result) // due to the lack of Js implementation for List.flatten 
   }
   
   **
@@ -184,10 +210,30 @@ internal const class ChunkedList : ConstList
         list.set(-1, list.last.addAll(next.toList)) :
         list.add(next))
   }
+ 
+  // due to lack of Js binarySearch implementation
+  internal static Int binarySearch(Range[] ranges, Range key, |Range a, Range b->Int|? c)
+  {
+    Int low := 0
+    Int high := ranges.size - 1
+    while (low <= high)
+    {
+      Int probe := (low + high).shiftr(1);
+      Int cmp := c(ranges[probe], key);
+      if (cmp < 0)
+        low = probe + 1;
+      else if (cmp > 0)
+        high = probe - 1;
+      else
+        return probe;
+    }
+    return -(low + 1);
+  }
   
   internal static Int index(Range[] ranges, Int index)
   {
-    result := ranges.binarySearch(index..index) |r1, r2| 
+//    result := ranges.binarySearch(index..index) |r1, r2|
+    result := binarySearch(ranges, index..index) |r1, r2| // due to lack of Js binarySearch implementation 
     { 
       r1.start >= r2.end ? 1 : (r2.start >= r1.end ? -1 : 0) 
     }

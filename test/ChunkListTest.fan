@@ -5,7 +5,7 @@
 // History:
 //   Ivan Inozemtsev Dec 6, 2010 - Initial Contribution
 //
-
+@Js
 class ChunkListTest : Test
 {
   Void test1()

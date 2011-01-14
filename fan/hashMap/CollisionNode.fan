@@ -8,6 +8,7 @@
 
 using constArray
 
+@Js
 internal const class CollisionNode : HashMapNode
 {
   const Int keyHash

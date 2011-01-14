@@ -8,6 +8,7 @@
 
 using constArray
 
+@Js
 internal const class ArrayNode : HashMapNode
 {
   const Int size
@@ -58,7 +59,10 @@ internal const class ArrayNode : HashMapNode
   private HashMapNode? pack(Int idx) 
   {
     newSize := 2 * (size - 1)
-    newArray := List.makeObj(newSize) { it.size = newSize }
+    //newArray := List.makeObj(newSize) { it.size = newSize } will not work in js
+    newArray := Obj?[,]
+    newArray.capacity = newSize
+    newArray.size = newSize 
     j := 1
     bitmap := 0
     for(i := 0; i < idx; i++)
@@ -80,6 +84,7 @@ internal const class ArrayNode : HashMapNode
   override ConstSeq? entries() { ArrayNodeSeq.create(nodes, 0, null) }
 }
 
+@Js
 internal const class ArrayNodeSeq : MapSeq
 {
   const ConstArray nodes

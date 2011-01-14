@@ -6,6 +6,10 @@
 //   Ivan Inozemtsev Dec 6, 2010 - Initial Contribution
 //   Ilya Sherenkov Dec 17, 2010 - Update
 
+**
+** Implementation of const HashMap
+** 
+@Js
 const class ConstHashMap : ConstMap
 {
   //////////////////////////////////////////////////////////////////////////
@@ -24,14 +28,9 @@ const class ConstHashMap : ConstMap
     this.nullVal = nullVal
   }
   
-  override ConstHashMap convertFromList(Obj?[] list) 
-  {  
-    result := ConstHashMap()
-    return result.addAll(list)
-  }   
 
   //////////////////////////////////////////////////////////////////////////
-  // Public API
+  // Public API ConstMap overrides
   //////////////////////////////////////////////////////////////////////////
   override Bool containsKey(Obj? key) 
   { 
@@ -42,7 +41,7 @@ const class ConstHashMap : ConstMap
   {
     if(key == null)
     {
-      if(hasNull && val == null) return this
+      if(hasNull && val == nullVal) return this
       return ConstHashMap(hasNull ? size : size + 1, root, true, val)
     }
     
@@ -83,6 +82,11 @@ const class ConstHashMap : ConstMap
     return hasNull ? NullHeadMapEntrySeq(nullVal, result) : result
   }
   
+  override ConstHashMap convertFromList(Obj?[] list) 
+  {  
+    result := ConstHashMap()
+    return result.addAll(list)
+  }   
   
   //////////////////////////////////////////////////////////////////////////
   // Helper methods

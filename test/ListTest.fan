@@ -5,8 +5,8 @@
 // History:
 //   Ivan Inozemtsev Dec 6, 2010 - Initial Contribution
 //
-
-
+ 
+@Js
 class ListTest : Test
 {
   Void testSimple()
@@ -24,7 +24,8 @@ class ListTest : Test
   Void testSimple3()
   {
     etalon := Obj?[,]
-    131072.times { etalon.add(it) }
+//    131072.times { etalon.add(it) }
+    13072.times { etalon.add(it) }
     verifyEq(etalon, ConstList.fromList(etalon).toList)
   }
 
