@@ -20,3 +20,18 @@ Collection classes can be compiled to Javascript
 
 This pod uses constArray pod with the native array class for the performace needs.
 
+The base item is const mixin ConstColl, witch provides a lot of iterable
+list-like methods like each, findAll, exclude and so on.
+
+Other collection mixins are ConstColl descendants.
+
+ConstSeq is a mixin for a constant sequence of objects.
+
+ConstList provides constant list routings.
+
+ConstMap is a mixin for constant maps. It has two implementations: ConstHashSet and ConstTreeSet
+
+And there is a constant set mixin ConstSet, witch is based on ConstMap, 
+and therefore has two implementations as well: ConstHashSet and ConstTreeSet
+
+
