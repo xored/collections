@@ -23,4 +23,6 @@ const class ConstHashSet : ConstSet
   override ConstSet convertFromList(Obj?[] list) { ConstHashSet().addAll(list) }
   
   override Int size() { ConstSet.super.size } // due to js dynamic invocation bug
+  
+  const static ConstHashSet empty := ConstHashSet()  
 }

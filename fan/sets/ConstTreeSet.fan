@@ -47,5 +47,7 @@ const class ConstTreeSet : ConstSet, Sorted
     return KeySeq(impl.sorted(asc)) 
   }
   
-  override Int size() { ConstSet.super.size } // due to js dynamic invocation bug  
+  override Int size() { ConstSet.super.size } // due to js dynamic invocation bug
+  
+  static ConstTreeSet empty(|Obj, Obj -> Int|? c := null) { ConstTreeSet(c) }
 }
