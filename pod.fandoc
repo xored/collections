@@ -8,30 +8,30 @@
 
 Overview [#overview]
 ********************
-Collections pod provides a set of general-purpose collections.
+Collections pod provides a set of general-purpose persistent collections.
 The key feature of these collections is that all of them are const
 clasess which return a copy on modification. The main trick is the fact, 
-that no full copy is produced, but the old link still references the old version 
+that no full copy is produced, still the old link continues to reference the old version 
 of the collection, i.e. a partial copy takes place to boost the speed of operations. 
 
 The basic idea is taken from Clojure
 
 Collection classes can be compiled to Javascript
 
-This pod uses constArray pod with the native array class for the performace needs.
+This pod uses constArray pod with the native array class for the performance needs.
 
-The base item is const mixin ConstColl, witch provides a lot of iterable
+The base item is a const mixin ConstColl, it provides a lot of iterable
 list-like methods like each, findAll, exclude and so on.
 
 Other collection mixins are ConstColl descendants.
 
 ConstSeq is a mixin for a constant sequence of objects.
 
-ConstList provides constant list routings.
+ConstList mixin provides constant list routings.
 
-ConstMap is a mixin for constant maps. It has two implementations: ConstHashSet and ConstTreeSet
+ConstMap is a mixin for constant maps. It has two implementations provided: ConstHashSet and ConstTreeSet.
 
-And there is a constant set mixin ConstSet, witch is based on ConstMap, 
+And there is a constant set mixin ConstSet, it is based on ConstMap, 
 and therefore has two implementations as well: ConstHashSet and ConstTreeSet
 
 
