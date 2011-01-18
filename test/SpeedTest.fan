@@ -25,7 +25,7 @@ class SpeedTest : Test
     doAddN(100)
     doAddN(1000)
     doAddN(10000) 
-    doAddN(100000)
+    //doAddN(100000)
     //doAddN(1000000)
     //doAddN(10000000)
   }
@@ -82,8 +82,6 @@ class SpeedTest : Test
     echoTimeFrom(d, "ConstHashSet: ")
     verifyAfterAddN(hashSet, n)
     
-    verifyEq(hashSet.size, n)    
-
     d = Duration.now
     n.times { treeSet = treeSet.add(it) }
     echoTimeFrom(d, "ConstTreeSet: ")
@@ -97,8 +95,8 @@ class SpeedTest : Test
     doRemoveN(100)
     doRemoveN(100)
     doRemoveN(1000)
-    doRemoveN(10000)
-    doRemoveN(100000)
+    //doRemoveN(10000)
+    //doRemoveN(100000)
     //doRemoveN(1000000)
   }
  
@@ -171,8 +169,8 @@ class SpeedTest : Test
     echo("*** Test of \"remove\" at random.")
     doRemoveRandomN(100)
     doRemoveRandomN(1000)
-    doRemoveRandomN(10000)
-    doRemoveRandomN(100000)
+    //doRemoveRandomN(10000)
+    //doRemoveRandomN(100000)
     //doRemoveRandomN(1000000)
   }
   Void doRemoveRandomN(Int n)

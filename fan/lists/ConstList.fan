@@ -205,5 +205,29 @@ const mixin ConstList : ConstStack, ConstColl
   override ConstList exclude(|Obj?, Int -> Bool| f) { ConstColl.super.exclude(f) }
   override ConstList findAll(|Obj?, Int -> Bool| f) { ConstColl.super.findAll(f) }
   override ConstList findType(Type t) { ConstColl.super.findType(t) }
+ 
+  override Bool equiv(Obj? that)
+  {
+    if (that == null) return false
+    if (this === that) return true
+    if (!(that is ConstList)) return false
+    list := (ConstList) that
+    if (this.size != list.size || this.hash != list.hash) return false
+    for (i:=0; i<size; i++)
+    {
+      if (this[i] != list[i]) return false
+    }
+    return true
+  }  
+
+  override Bool equals(Obj? that) { equiv(that) } // ConstList itself is implemented by different types
+
+  override Int hash() 
+  {
+    reduce(0) |Int r, Obj? o -> Int| 
+    {
+      r = 31 * r + (o?.hash ?: 0);
+    }
+  }
   
 }

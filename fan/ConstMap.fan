@@ -238,5 +238,37 @@ const mixin ConstMap: ConstColl
     if (map.def != null) result = result[null] = map.def
     return map.reduce(result) |ConstMap r, Obj? v, Obj k -> ConstMap| { result = result[k] = v }
   }
+ 
+  override Bool equiv(Obj? that)
+  {
+    if (that == null) return false
+    if (this === that) return true
+    if (!(that is ConstMap)) return false
+    map := (ConstMap) that
   
+    if (map.size() != this.size() || map.hash() != this.hash()) return false
+  
+    if (map.size == 0) return true // size = 0 maps have EmptyMapSeq entries, witch will crash next cycle 
+    
+    for (MapSeq? s := this.entries; s != null; s = s.next())
+    {
+      e :=  s.val;
+      found := map.containsKey(e.key);
+      if (!found || !e.val.equals(map[e.key])) return false
+    }
+    return true
+  }  
+
+  override Bool equals(Obj? that) { this.typeof != that?.typeof ? false : equiv(that) }
+
+  override Int hash() 
+  {
+    size==0 ? 0 : entries.reduce(0) |Int r, MapEntry e -> Int| 
+    {
+      r += (e.key?.hash ?: 0).xor(e.val?.hash ?: 0)
+    }
+  }
+
 }
+  
+  

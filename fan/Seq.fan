@@ -37,6 +37,33 @@ const mixin ConstSeq : ConstColl
     return null
   }
   
+  override Bool equiv(Obj? that)
+  {
+    if (that == null) return false
+    if (this === that) return true
+    if (!(that is ConstSeq)) return false
+    seq1 := this
+    seq2 := (ConstSeq) that
+    if (seq1.hash != seq2.hash) return false
+    while (seq1.val == seq2.val && seq1.next!=null && seq2.next!=null)
+    {
+      seq1 = seq1.next
+      seq2 = seq2.next
+    }
+    return (seq1.val == seq2.val && seq1.next==null && seq2.next==null)
+  }
+
+  override Bool equals(Obj? that) { this.typeof != that?.typeof ? false : equiv(that) }
+  
+  override Int hash() 
+  {
+    reduce(0) |Int r, Obj? o -> Int| 
+    {
+      r = 31 * r + (o?.hash ?: 0);
+    }
+  }
+  
+  
   // covariance overrides
   override ConstSeq map(|Obj?, Int -> Obj?| f)  { ConstColl.super.map(f) }
   override ConstSeq exclude(|Obj?, Int -> Bool| f) { ConstColl.super.exclude(f) }

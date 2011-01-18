@@ -119,4 +119,26 @@ class ListTest : Test
   {
     ConstList.fromList((0..<size).toList)
   }
+  
+  Void testList() {
+    echo((0..<20).toList.sort)
+    
+    list := Int[,]
+    20.times { list.add(it) }
+    echo(list.sort)
+  }
+  
+  Void testEq() {
+    verifyEq(ConstList.empty, ConstList.empty)
+    verifyEq(ConstList.empty.add(0), ConstList.empty.add(0))
+    verifyEq(ConstList.empty, ConstList.empty.add(0).removeAt(0))
+    verifyNotEq(ConstList.empty, null)
+    verifyNotEq(ConstList.empty.add(0), ConstList.empty.add(1))
+    verifyNotEq(ConstList.empty.add(0).add(1), ConstList.empty.add(1).add(0))
+    
+    list1 := create(10).removeAt(4)
+    list2 := ConstList.fromList([0,1,2,3,5,6,7,8,9])
+    verifyEq(list1, list2)
+    verifyEq(create(1000), create(1000))
+  }
 }

@@ -270,6 +270,7 @@ const mixin ConstColl
   }
   
   
+  ** 
   ** Converts collection to Fantom list. 
   ** Default implementation uses `#each`,
   ** however inheritors may override in
@@ -281,4 +282,10 @@ const mixin ConstColl
     each |v| { result.add(v) }
     return result
   }
+ 
+  **
+  ** Determines if the given that collection has equal elements to this one
+  ** 
+  abstract Bool equiv(Obj? that)
+  
 }

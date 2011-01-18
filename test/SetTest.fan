@@ -107,8 +107,8 @@ class SetTest : Test
 
   Void testEquality()
   {
-    doTestEquality(ConstTreeSet())
-    doTestEquality(ConstHashSet())
+    doTestEquality(ConstTreeSet.empty)
+    doTestEquality(ConstHashSet.empty)
   }
   Void doTestEquality(ConstSet emptySet)
   {
@@ -126,6 +126,24 @@ class SetTest : Test
     verifyNotEq(emptySet.addAll([1,2,3]), emptySet.addAll(['1','2','3']))
   }
 
+  Void testEquive()
+  {
+    verifyNotEq(ConstHashSet.empty.addAll([1]), ConstTreeSet.empty.addAll([1]))
+    verifyNotEq(ConstHashSet.empty.addAll([1,2,3]), ConstTreeSet.empty.addAll([1,3,2]))
+    verifyNotEq(ConstHashSet.empty.addAll([1,2,2]), ConstTreeSet.empty.addAll([2,2,1]))
+    verifyNotEq(ConstHashSet.empty.addAll([1,3,3,4]), ConstTreeSet.empty.addAll([4,1,3]))
+    verifyNotEq(ConstHashSet.empty.addAll((0..<1000).toList), ConstTreeSet.empty.addAll((0..<1000).toList.reverse))
+    
+    verify(ConstHashSet.empty.addAll([1]).equiv(ConstTreeSet.empty.addAll([1])))
+    verify(ConstHashSet.empty.addAll([1,2,3]).equiv(ConstTreeSet.empty.addAll([1,3,2])))
+    verify(ConstHashSet.empty.addAll([1,2,2]).equiv(ConstTreeSet.empty.addAll([2,2,1])))
+    verify(ConstHashSet.empty.addAll([1,3,3,4]).equiv(ConstTreeSet.empty.addAll([4,1,3])))
+    verify(ConstHashSet.empty.addAll((0..<1000).toList).equiv(ConstTreeSet.empty.addAll((0..<1000).toList.reverse)))
+
+    verifyFalse(ConstHashSet.empty.addAll([1,2,3]).equiv(ConstTreeSet.empty.addAll([1,3])))
+    verifyFalse(ConstHashSet.empty.addAll([1,2,3]).equiv(ConstTreeSet.empty.addAll(['1','2','3'])))
+  }
+  
   Void testSetWithNullEquality()
   {
 //    doTestSetWithNullEquality(ConstTreeSet())
@@ -151,7 +169,7 @@ class SetTest : Test
   }
   Void doTestEach(ConstSet emptySet)
   {
-    N := 100000
+    N := 1000
     set := emptySet.addAll((0..<N).toList)
     sum := 0
     set.each |item| { sum += (Int) item }

@@ -171,12 +171,38 @@ class MapTest : Test
   
   Void verifyTestEach(ConstMap map)
   {
-    N := 100000;
+    N := 1000;
     N.times { map = map[it] = it }
-    verifyEq(map.findAll |x| { x->key != 1 }.toList.size, N - 1)
+    verifyEq(map.findAll |x| { ((MapEntry)x).key != 1 }.toList.size, N - 1)
     sum := 0
-    map.each |x| { sum += (Int) x->key }
+    map.each |x| { sum += (Int) ((MapEntry)x).key }
     verifyEq(sum, (N) * (N - 1) / 2)
+  }
+  
+  Void testEq() 
+  {
+    verifyEq(ConstHashMap.empty, ConstHashMap.empty)
+    verifyNotEq(ConstHashMap.empty, ConstTreeMap.empty)
+    verify(ConstHashMap.empty.equiv(ConstTreeMap.empty))
+    
+    verifyEq(ConstHashMap.empty.set(0,1), ConstHashMap.empty.set(0,1))
+    verifyEq(ConstTreeMap.empty.set(0,1), ConstTreeMap.empty.set(0,1))
+    verifyNotEq(ConstHashMap.empty.set(0,1), ConstTreeMap.empty.set(0,1))
+    verify(ConstHashMap.empty.set(0,1).equiv(ConstTreeMap.empty.set(0,1)))
+    
+    verifyEq(ConstHashMap.empty, ConstHashMap.empty.set(0, 1).remove(0))
+    verifyEq(ConstTreeMap.empty, ConstTreeMap.empty.set(0, 1).remove(0))
+    verify(ConstHashMap.empty.set(0, 1).remove(0).equiv(ConstTreeMap.empty.set(0, 1).remove(0)))
+    
+    verifyNotEq(ConstHashMap.empty, null)
+    verifyNotEq(ConstTreeMap.empty, null)
+    verifyNotEq(ConstHashMap.empty.set(0,1), ConstHashMap.empty.set(0,0))
+    verifyNotEq(ConstTreeMap.empty.set(0,1), ConstTreeMap.empty.set(0,0))
+
+    verifyEq(ConstHashMap.empty.set(0, 1).set(1, 2), ConstHashMap.empty.set(1,2).set(0,1))
+    verifyEq(ConstTreeMap.empty.set(0, 1).set(1, 2), ConstTreeMap.empty.set(1,2).set(0,1))
+    verifyNotEq(ConstHashMap.empty.set(0, 1).set(1, 2), ConstTreeMap.empty.set(1,2).set(0,1))
+    verify(ConstHashMap.empty.set(0, 1).set(1, 2).equiv(ConstTreeMap.empty.set(1,2).set(0,1)))
   }
   
 }

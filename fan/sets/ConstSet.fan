@@ -84,28 +84,30 @@ const mixin ConstSet: ConstColl
     seq.reduce(this) |ConstSet r, Obj? item -> ConstSet|  { r.add(item) }
   } 
 
-  **
-  ** Equality check override
-  ** 
-  override Bool equals(Obj? that)
+  override Bool equiv(Obj? that)
   {
     if (that == null) return false
     if (this === that) return true
     if (!(that is ConstSet)) return false
 
-    m := (ConstSet) that
-    if (m.size() != this.size() || m.hash() != this.hash()) return false
+    set := (ConstSet) that
+    if (set.size() != this.size() || set.hash() != this.hash()) return false
     
-    // empty sets are equal
-    if (this.size == 0) return true
+    // empty sets are equiv   
+    if (this.size == 0) return true // size = 0 maps have EmptyMapSeq entries, witch will crash next cycle
 
     for (ConstSeq? seq := this.items; seq != null; seq = seq.next)
     {
-      if (! m.contains(seq.val)) return false
+      if (! set.contains(seq.val)) return false
     }
 
-    return true;
+    return true
   }
+  
+  **
+  ** Equality check override
+  ** 
+  override Bool equals(Obj? that) { this.typeof != that?.typeof ? false : equiv(that) }
 
   **
   ** hash override
