@@ -34,7 +34,9 @@ const class ConstHashMap : ConstMap
   //////////////////////////////////////////////////////////////////////////
   override Bool containsKey(Obj? key) 
   { 
-    key == null ? hasNull : ((root?.find(0, key.hash, key) ?: NotFound.instance) !== NotFound.instance)
+    return key == null ? hasNull : (
+      root == null ? false :
+      (root.find(0, key.hash, key) !== NotFound.instance))
   }
   
   @Operator override ConstMap set(Obj? key, Obj? val)

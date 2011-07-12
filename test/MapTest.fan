@@ -17,12 +17,12 @@ class MapTest : Test
   }
   
   Void verifyTrivialPositive(ConstMap map)
-  {
-    
+  {    
     map = map["foo"] = "bar"
     verifyEq(map["foo"], "bar")
     verifyEq(map.keys.toList, Obj?["foo"])
     verify(map.containsKey("foo"))
+    verifyEq(false, map.containsKey("not_foo"))
   }
   
   Void test1()
@@ -142,11 +142,30 @@ class MapTest : Test
   Void testNullKey()
   {
     map := ConstHashMap.empty
+    
     map = map[1] = 1
     map = map[2] = 2
     map = map[3] = 3
     map = map[null] = null
     verifyEq(map.keys.toList.size, 4)
+    verifyEq(true, map.containsKey(null))
+    verifyEq(false, map.containsKey(5))
+
+    map = map[null] = 4
+    verifyEq(4, map[null])
+  }
+  
+  Void testNullValue()
+  {
+    ConstMap map := ConstHashMap.empty
+    map = map[1] = null
+    verifyEq(true, map.containsKey(1))
+    verifyEq(null, map[1])
+    
+    map = ConstTreeMap.empty
+    map = map[1] = null
+    verifyEq(true, map.containsKey(1))
+    verifyEq(null, map[1])
   }
   
   Void testToMap()
@@ -203,6 +222,8 @@ class MapTest : Test
     verifyEq(ConstTreeMap.empty.set(0, 1).set(1, 2), ConstTreeMap.empty.set(1,2).set(0,1))
     verifyNotEq(ConstHashMap.empty.set(0, 1).set(1, 2), ConstTreeMap.empty.set(1,2).set(0,1))
     verify(ConstHashMap.empty.set(0, 1).set(1, 2).equiv(ConstTreeMap.empty.set(1,2).set(0,1)))
+    
+    verifyEq(ConstHashMap.empty.set("x", null), ConstHashMap.empty.set("x", null))
   }
   
 }

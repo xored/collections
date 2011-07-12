@@ -204,6 +204,8 @@ const mixin ConstMap: ConstColl
       }
   }
   
+  override Str toStr() { toMap().toStr() }
+  
   // covariance overrides
   override ConstMap map(|Obj?, Int -> Obj?| f)  { ConstColl.super.map(f) }
   override ConstMap exclude(|Obj?, Int -> Bool| f) { ConstColl.super.exclude(f) }
@@ -245,16 +247,16 @@ const mixin ConstMap: ConstColl
     if (this === that) return true
     if (!(that is ConstMap)) return false
     map := (ConstMap) that
-  
+
     if (map.size() != this.size() || map.hash() != this.hash()) return false
   
     if (map.size == 0) return true // size = 0 maps have EmptyMapSeq entries, witch will crash next cycle 
     
     for (MapSeq? s := this.entries; s != null; s = s.next())
     {
-      e :=  s.val;
-      found := map.containsKey(e.key);
-      if (!found || !e.val.equals(map[e.key])) return false
+      e :=  s.val
+      found := map.containsKey(e.key)
+      if (!found || e.val != map[e.key]) return false
     }
     return true
   }  
