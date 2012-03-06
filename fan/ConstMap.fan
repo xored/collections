@@ -184,6 +184,11 @@ const mixin ConstMap: ConstColl
   ** The size of the map
   ** 
   abstract Int size()
+  
+  **
+  ** Convenience for 'size == 0'
+  ** 
+  virtual Bool isEmpty() { size ==0 }
   //////////////////////////////////////////////////////////////////////////
   // Integration methods
   //////////////////////////////////////////////////////////////////////////
