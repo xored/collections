@@ -6,8 +6,6 @@
 //   Ivan Inozemtsev Dec 6, 2010 - Initial Contribution
 //   Ilya Sherenkov Dec 17, 2010 - Update
 
-using constArray
-
 **************************************************************************
 ** Node
 **************************************************************************
@@ -19,19 +17,19 @@ internal const class Node
   internal static const Int nodeSize := 1.shiftl(bitWidth)
   internal static const Int indexMask := nodeSize - 1
   internal static const Int inverseMask := indexMask.not
-  internal static const Node empty := Node(ConstArray(0))
+  internal static const Node empty := Node(Obj?[,])
 
-  new make(ConstArray objs) 
+  new make(Obj?[] objs) 
   { 
     this.objs = objs 
   }  
-  const ConstArray objs
+  const Obj?[] objs
   
   internal static Node fromList(Obj?[] list, Int from := 0)
   {
-    newArraySize := list.size.min(from + Node.nodeSize) - from
-    ConstArray constArray := ConstArray.arrayCopy(ConstArray.fromList(list), from, ConstArray(newArraySize), 0, newArraySize)
-    return Node(constArray)
+    list.size - from <= nodeSize ? 
+      Node(list[from..-1])
+      : Node(list[from..<from+nodeSize])
   }
 }
 
@@ -44,17 +42,18 @@ internal const class CList : ConstList
   //////////////////////////////////////////////////////////////////////////
   // Constructor and fields
   //////////////////////////////////////////////////////////////////////////
-  static const CList emptyCList := CList(0, Node.empty, ConstArray(0));
+  static const CList emptyCList := CList(0, Node.empty, emptyObjList);
   
-  static CList createEmptyCList() { CList(0, Node(ConstArray(0)), ConstArray(0))}
+  private static const Obj?[] emptyObjList := Obj?[,]
+  static CList createEmptyCList() { CList(0, Node(emptyObjList), emptyObjList)}
   
   private const Node root
-  private const ConstArray tail
+  private const Obj?[] tail
   
   private const Int tailStart
   private const Int depth
   
-  internal new make(Int size, Node root, ConstArray tail)
+  internal new make(Int size, Node root, Obj?[] tail)
   {
     this.size = size
     this.root = root
@@ -68,18 +67,14 @@ internal const class CList : ConstList
     //tail only
     if(items.size <= Node.nodeSize) 
     {
-      tailArray := ConstArray.arrayCopy(ConstArray.fromList(items), 0, ConstArray(items.size), 0, items.size) 
-      return CList(items.size, Node.empty, tailArray)
+      return CList(items.size, Node.empty, items)
     }
     
-    //so that we will always have a tail
     size := items.size
     nodeCount := (items.size - 1)/Node.nodeSize
-    tail := items[nodeCount * Node.nodeSize ..-1]
-
-    tailArray := ConstArray.arrayCopy(ConstArray.fromList(tail), 0, ConstArray(tail.size), 0, tail.size)   
-    
-    items = items[0..<nodeCount * Node.nodeSize]
+    tailIndex := nodeCount * Node.nodeSize 
+    tail := items[tailIndex..-1]
+    items = items[0..<tailIndex]
 
     while(items.size > 1)
     {
@@ -87,7 +82,7 @@ internal const class CList : ConstList
     }
     
     //now items is a list of nodes which should be just added to the root node
-    return CList(size, items.first, tailArray)
+    return CList(size, items.first, tail)
   }
 
   private static const Int level1Size := Node.nodeSize * Node.nodeSize + Node.nodeSize
@@ -110,25 +105,25 @@ internal const class CList : ConstList
   override ConstList push(Obj? obj) 
   {
     //room in tail
-    if(inTail(size)) return CList(size + 1, root, tail.set(tail.size, obj))
+    if(inTail(size)) return CList(size + 1, root, tail.dup.add(obj))
 
     //full tail, push into tree
     Node newRoot := Node.empty
     tailNode := Node(tail) 
     //overflow root?
     if(rootIsFull)
-      newRoot = Node(ConstArray(2).set(0, root).set(1, newPath(depth, tailNode)))
+      newRoot = Node([root, newPath(depth, tailNode)])
     else
       newRoot = pushTail(depth, root, tailNode)
     
-    return CList(size + 1, newRoot, ConstArray(1).set(0, obj))
+    return CList(size + 1, newRoot, [obj])
   }
   
   override ConstList pop()
   {
     if(size == 0) return this
     if(size == 1) return empty
-    if(size - tailStart > 1) return CList(size - 1, root, tail.dup(tail.size-1))
+    if(size - tailStart > 1) return CList(size - 1, root, tail[0..-2])
 
     newTail := arrayFor(size - 2)
     newRoot := popTail(depth, root) ?: Node.empty
@@ -151,7 +146,7 @@ internal const class CList : ConstList
   {
     i = normalizeIndex(i)
     return i >= tailStart ? 
-      CList(size, root, tail.set(nodeIndex(i), val)) :
+      CList(size, root, tail.dup.set(nodeIndex(i), val)) :
       CList(size, doSet(depth, root, i, val), tail)
   }
   
@@ -160,7 +155,10 @@ internal const class CList : ConstList
     i = normalizeIndex(i)
     if (i >= tailStart)  
     {
-      newTail := ConstArray.arrayCopy(tail, nodeIndex(i) + 1, tail.dup(tail.size - 1), nodeIndex(i), size - i - 1)
+      indexInTail := nodeIndex(i)
+      newTail := List.makeObj(tail.size - 1)
+      newTail.addAll(tail[0..<indexInTail])
+      newTail.addAll(tail[indexInTail+1..-1])
       return CList(size - 1, root, newTail)
     }
     return ConstList.super.removeAt(i)
@@ -171,7 +169,9 @@ internal const class CList : ConstList
     i = normalizeIndex(i)
     if (i >= tailStart && inTail(size))
     {
-      newTail := ConstArray.arrayCopy(tail, nodeIndex(i), tail.dup(tail.size + 1), nodeIndex(i) + 1, size - i).set(nodeIndex(i), o)
+      indexInTail := nodeIndex(i)
+      newTail := List.makeObj(tail.size + 1)
+      newTail.addAll(tail[0..<indexInTail]).add(o).addAll(tail[indexInTail..-1])
       return CList(size + 1, root, newTail)
     }
     
@@ -215,7 +215,7 @@ internal const class CList : ConstList
   
   private static Node newPath(Int depth, Node node)
   {
-    depth == 0 ? node : Node(ConstArray(1).set(0, newPath(depth - 1, node)))
+    depth == 0 ? node : Node([newPath(depth - 1, node)])
   }
   
   private static Node doSet(Int depth, Node node, Int i, Obj? val)
@@ -227,7 +227,7 @@ internal const class CList : ConstList
     return setVal(node, subIndex, doSet(depth - 1, node.objs[subIndex], i, val))
   }
   
-  protected ConstArray arrayFor(Int i)
+  protected Obj?[] arrayFor(Int i)
   {
     if(i >= tailStart) return tail 
     return nodeFor(i).objs
@@ -246,7 +246,7 @@ internal const class CList : ConstList
   //////////////////////////////////////////////////////////////////////////
   private static Node setVal(Node node, Int index, Obj? val)
   {
-    Node(node.objs.set(index, val))
+    return Node(node.objs.size > index ? node.objs.dup.set(index, val) : node.objs.dup.add(val))
   }
   
   private static Obj? getVal(Node node, Int index)
@@ -283,7 +283,7 @@ internal const class CList : ConstList
     result := Obj?[,]
     result.capacity = size
     allObjs(root, result)
-    result.addAll(tail.toList)
+    result.addAll(tail)
     return result 
   }
   
@@ -292,7 +292,7 @@ internal const class CList : ConstList
     if(node.objs.size == 0) return
     if(node.objs[0] isnot Node) //leaf node
     {
-      acc.addAll(node.objs.toList)
+      acc.addAll(node.objs)
       return
     }
     

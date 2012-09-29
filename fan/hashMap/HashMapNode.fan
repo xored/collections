@@ -5,8 +5,6 @@
 // History:
 //   Ivan Inozemtsev Dec 6, 2010 - Initial Contribution
 
-using constArray
-
 @Js
 internal const class NotFound
 {
@@ -58,17 +56,17 @@ internal const mixin HashMapNode
   //////////////////////////////////////////////////////////////////////////
   // Array manipulation
   //////////////////////////////////////////////////////////////////////////
-//  static Obj?[] cloneAndSet(Obj?[] objs, Int i, Obj? val) { objs.dup.set(i, val) }
-//  static Obj?[] cloneAndSet2(Obj?[] objs, Int i, Obj? val1, Int j, Obj? val2) 
-//  { 
-//    objs.dup.set(i, val1).set(j, val2) 
-//  }
-
-  static ConstArray cloneAndSet(ConstArray objs, Int i, Obj? val) { objs.set(i, val) }
-  static ConstArray cloneAndSet2(ConstArray objs, Int i, Obj? val1, Int j, Obj? val2) 
+  static Obj?[] cloneAndSet(Obj?[] objs, Int i, Obj? val) { objs.dup.set(i, val) }
+  static Obj?[] cloneAndSet2(Obj?[] objs, Int i, Obj? val1, Int j, Obj? val2) 
   { 
-    objs.set(i, val1).set(j, val2) 
+    objs.dup.set(i, val1).set(j, val2) 
   }
+
+//  static ConstArray cloneAndSet(ConstArray objs, Int i, Obj? val) { objs.set(i, val) }
+//  static ConstArray cloneAndSet2(ConstArray objs, Int i, Obj? val1, Int j, Obj? val2) 
+//  { 
+//    objs.set(i, val1).set(j, val2) 
+//  }
   
   //////////////////////////////////////////////////////////////////////////
   // Node manipulation
@@ -77,19 +75,16 @@ internal const mixin HashMapNode
   {
     key1hash := key1.hash
     if(key1hash == key2hash)
-      return CollisionNode(key1hash, 2, ConstArray.fromList([key1, val1, key2, val2]))
+      return CollisionNode(key1hash, 2, [key1, val1, key2, val2])
     leaf := Leaf()
     return BitmapNode.empty
       .put(level, key1hash, key1, val1, leaf)
       .put(level, key2hash, key2, val2, leaf)
   }
   
-  static ConstArray removePair(ConstArray objs, Int idx)
+  static Obj?[] removePair(Obj?[] objs, Int idx)
   {
-    result := ConstArray(objs.size - 2)
-    result = ConstArray.arrayCopy(objs, 0, result, 0, 2*idx)
-    result = ConstArray.arrayCopy(objs, 2*idx + 2, result, 2*idx, objs.size - 2*idx - 2)
-    return result
+    List.makeObj(objs.size - 2).addAll(objs[0..<2*idx]).addAll(objs[2*idx+2..-1])
   }
   
 }

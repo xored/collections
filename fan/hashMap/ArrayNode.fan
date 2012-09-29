@@ -6,14 +6,12 @@
 //   Ivan Inozemtsev Dec 6, 2010 - Initial Contribution
 //
 
-using constArray
-
 @Js
 internal const class ArrayNode : HashMapNode
 {
   const Int size
-  const ConstArray nodes
-  new make(Int size, ConstArray nodes)
+  const Obj?[] nodes
+  new make(Int size, Obj?[] nodes)
   {
     this.size = size
     this.nodes = nodes
@@ -78,7 +76,7 @@ internal const class ArrayNode : HashMapNode
         newArray[j] = nodes[i]
         bitmap = bitmap.or(1.shiftl(i))
       }
-    return BitmapNode(bitmap, ConstArray.fromList(newArray))
+    return BitmapNode(bitmap, newArray)
   }
   
   override ConstSeq? entries() { ArrayNodeSeq.create(nodes, 0, null) }
@@ -87,17 +85,17 @@ internal const class ArrayNode : HashMapNode
 @Js
 internal const class ArrayNodeSeq : MapSeq
 {
-  const ConstArray nodes
+  const Obj?[] nodes
   const Int i
   const MapSeq seq
-  private new make(ConstArray nodes, Int i, MapSeq seq)
+  private new make(Obj?[] nodes, Int i, MapSeq seq)
   {
     this.nodes = nodes
     this.i = i
     this.seq = seq
   }
   
-  static MapSeq? create(ConstArray nodes, Int i, ConstSeq? seq)
+  static MapSeq? create(Obj?[] nodes, Int i, ConstSeq? seq)
   {
     if(seq != null) return ArrayNodeSeq(nodes, i, seq)
     for(j := i; j < nodes.size; j++)
