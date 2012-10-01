@@ -44,7 +44,7 @@ class ValVisitor
   { 
     b := onMapStart
     f(b)
-    b.mapEnd
+    b.onMapEnd
     return this
   }
   
@@ -90,7 +90,7 @@ class ValVisitor
 class MapVisitor
 {
   virtual MapValVisitor key(Str val) { MapValVisitor(this) }
-  protected virtual Void mapEnd() {}
+  protected virtual Void onMapEnd() {}
 }
 
 class MapValVisitor : ValVisitor

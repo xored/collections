@@ -33,7 +33,7 @@ class MapBuilder : MapVisitor
   
   private MapValBuilder builder := MapValBuilder(result, this)
   
-  override Void mapEnd() { onResult(result) }
+  override protected Void onMapEnd() { onResult(result) }
   
   override MapValVisitor key(Str key)
   {

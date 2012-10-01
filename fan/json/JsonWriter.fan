@@ -79,7 +79,7 @@ internal class MapWriter : MapVisitor, BaseContainer
     this.parent = parent
   }
   
-  override protected Void mapEnd() { closeContainer }
+  override protected Void onMapEnd() { closeContainer }
   
   override MapValVisitor key(Str val)
   {
