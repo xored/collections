@@ -31,6 +31,18 @@ class JsonParser
       "null".each { consume(it) }
       visitor.nil
     }
+    else if(cur == JsonConsts.arrayStart)
+    {
+      p := ListParser(this)
+      visitor.list(p.func)
+      p.complete
+    }
+    else if (cur == JsonConsts.objectStart)
+    {
+      p := MapParser(this)
+      visitor.map(p.func)
+      p.complete
+    }
     else throw err("Unexpected token " + this.cur)
   }
   
@@ -168,4 +180,49 @@ class JsonParser
   }
   
   private Err err(Str msg) { ParseErr("$msg at $pos") }
+}
+
+internal abstract class SubParser
+{
+  protected JsonParser parser
+  new make(JsonParser parser)
+  {
+    this.parser = parser
+  }
+  
+  private Bool parsed := false
+  virtual Func func() { |Obj visitor| 
+    { 
+      parse(visitor) 
+      parsed = true
+    } }
+  
+  public Void complete()
+  {
+    if(parsed) return
+    parse(null)
+  }
+  
+  abstract Void parse(Obj? visitor)
+  
+}
+
+internal class ListParser : SubParser
+{
+  new make(JsonParser parser) : super(parser) {}
+  
+  override Void parse(Obj? visitor)
+  {
+    ListVisitor? lv := visitor as ListVisitor
+  }
+}
+
+internal class MapParser : SubParser
+{
+  new make(JsonParser parser) : super(parser) {}
+  
+  override Void parse(Obj? visitor)
+  {
+    MapVisitor? lv := visitor as MapVisitor
+  }
 }

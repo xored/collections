@@ -12,6 +12,8 @@ class JsonParserTest : Test
     verifyParse("true", "true")
     verifyParse("false", "false")
     verifyParse("null", "null")
+    verifyParse("{}", "{}")
+    verifyParse("[]", "[]")
   }
   
   Void verifyParse(Str input, Str? expected := null)
