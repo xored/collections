@@ -1,6 +1,6 @@
 class JsonParser
 {
-  new make(InStream in)
+  new make(InStream in, Bool checked := true)
   {
     this.in = in
   }
@@ -8,7 +8,7 @@ class JsonParser
   InStream in
   
   private Int pos := 0
-  private Int cur := '?'
+  internal Int cur := '?'
   Void parse(JsonVisitor visitor)
   {
     pos = 0
@@ -46,16 +46,20 @@ class JsonParser
     else throw err("Unexpected token " + this.cur)
   }
   
-  private Void consume(Int expected := -1)
+  internal Void consume(Int expected := -1)
   {
+    if(cur == -1) throw ParseErr("Unexpected <eof>")
     if(expected != -1 && cur != expected) 
-      throw err("Expected ${expected.toChar}, got ${cur.toChar}")
+    {
+      str := cur == -1 ? "<eof>" : cur.toChar
+      throw err("Expected ${expected.toChar}, got $str")
+    }
     this.cur = in.readChar ?: -1 
     pos++
     
   }
   
-  private Void skipWhitespace()
+  internal Void skipWhitespace()
   {
     while(this.cur.isSpace)
       consume
@@ -65,7 +69,7 @@ class JsonParser
   private StrBuf fractional := StrBuf()
   private StrBuf exponent := StrBuf()
   
-  private Num parseNum()
+  internal Num parseNum()
   {
     integral.clear
     fractional.clear
@@ -118,13 +122,13 @@ class JsonParser
   }
   
   private StrBuf str := StrBuf()
-  private Str parseStr()
+  internal Str parseStr()
   {
     str.clear
     consume(JsonToken.quote) //open quote
     while( cur != JsonToken.quote )
     {
-      if(cur == -1) throw IOErr("Unexpected eof inside str literal")
+      if(cur == -1) throw ParseErr("Unexpected <eof> inside str literal")
       if (cur == '\\')
       {
         str.addChar(escape)
@@ -179,7 +183,7 @@ class JsonParser
     throw err("Invalid escape sequence")
   }
   
-  private Err err(Str msg) { ParseErr("$msg at $pos") }
+  internal Err err(Str msg) { ParseErr("$msg at $pos") }
 }
 
 internal abstract class SubParser
@@ -193,6 +197,7 @@ internal abstract class SubParser
   private Bool parsed := false
   virtual Func func() { |Obj visitor| 
     { 
+      if(parsed) return
       parse(visitor) 
       parsed = true
     } }
@@ -211,18 +216,134 @@ internal class ListParser : SubParser
 {
   new make(JsonParser parser) : super(parser) {}
   
-  override Void parse(Obj? visitor)
+  override Void parse(Obj? v)
   {
-    ListVisitor? lv := visitor as ListVisitor
+    ListVisitor? visitor := v as ListVisitor
+    parser.consume(JsonConsts.arrayStart)
+    parser.skipWhitespace
+    isFirst := true
+    while(parser.cur != JsonConsts.arrayEnd)
+    {
+      if(!isFirst)
+      {
+        parser.consume(JsonConsts.comma)
+        parser.skipWhitespace
+      }
+      isFirst = false
+      if(parser.cur == JsonConsts.quote) 
+        visitor = visitor?.str(parser.parseStr)
+      else if(parser.cur.isDigit || parser.cur == '-') 
+        visitor = visitor?.num(parser.parseNum)
+      else if(parser.cur == 't')
+      {
+        "true".each { parser.consume(it) }
+        visitor = visitor?.bool(true)
+      }
+      else if(parser.cur == 'f')
+      {
+        "false".each { parser.consume(it) }
+        visitor = visitor?.bool(false)
+      }
+      else if(parser.cur == 'n')
+      {
+        "null".each { parser.consume(it) }
+        visitor = visitor?.nil
+      }
+      else if(parser.cur == JsonConsts.arrayStart)
+      {
+        p := ListParser(parser)
+        visitor = visitor?.list(p.func)
+        p.complete
+      }
+      else if (parser.cur == JsonConsts.objectStart)
+      {
+        p := MapParser(parser)
+        visitor = visitor?.map(p.func)
+        p.complete
+      }
+      else throw parser.err("Unexpected token " + parser.cur)
+      
+      parser.skipWhitespace
+    }
+    parser.consume(JsonConsts.arrayEnd)
   }
 }
 
 internal class MapParser : SubParser
 {
+  new make(JsonParser parser) : super(parser) 
+  {
+    valParser = MapValParser(parser)
+  }
+  
+  private MapValParser valParser
+  override Void parse(Obj? v)
+  {
+    visitor := v as MapVisitor
+    parser.consume(JsonConsts.objectStart)
+    parser.skipWhitespace
+    isFirst := true
+    while(parser.cur != JsonConsts.objectEnd)
+    {
+      if(!isFirst)
+      {
+        parser.consume(JsonConsts.comma)
+        parser.skipWhitespace
+      }
+      isFirst = false
+      key := parser.parseStr
+      valVisitor := visitor?.key(key)
+      parser.skipWhitespace
+      parser.consume(JsonConsts.colon)
+      parser.skipWhitespace
+      valParser.parse(valVisitor)
+      visitor = valParser.resVisitor
+      parser.skipWhitespace
+    }
+    parser.consume(JsonConsts.objectEnd)
+  }
+}
+
+internal class MapValParser : SubParser
+{
   new make(JsonParser parser) : super(parser) {}
   
-  override Void parse(Obj? visitor)
+  override Void parse(Obj? v)
   {
-    MapVisitor? lv := visitor as MapVisitor
+    visitor := v as MapValVisitor
+    if(parser.cur == JsonConsts.quote) 
+      resVisitor = visitor?.str(parser.parseStr)
+    else if(parser.cur.isDigit || parser.cur == '-') 
+      resVisitor = visitor?.num(parser.parseNum)
+    else if(parser.cur == 't')
+    {
+      "true".each { parser.consume(it) }
+      resVisitor = visitor?.bool(true)
+    }
+    else if(parser.cur == 'f')
+    {
+      "false".each { parser.consume(it) }
+       resVisitor = visitor?.bool(false)
+    }
+    else if(parser.cur == 'n')
+    {
+      "null".each { parser.consume(it) }
+      resVisitor = visitor?.nil
+    }
+    else if(parser.cur == JsonConsts.arrayStart)
+    {
+      p := ListParser(parser)
+      resVisitor = visitor?.list(p.func)
+      p.complete
+    }
+    else if (parser.cur == JsonConsts.objectStart)
+    {
+      p := MapParser(parser)
+      resVisitor = visitor?.map(p.func)
+      p.complete
+    }
+    else throw parser.err("Unexpected token " + parser.cur)
   }
+  
+  MapVisitor? resVisitor
 }

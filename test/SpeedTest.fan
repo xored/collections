@@ -17,7 +17,7 @@ class SpeedTest : Test
     echo("$s${(Duration.now - d).toMillis}ms")
   }
   
-  Void testAddSpeed() 
+  Void estAddSpeed() 
   {
     echo("*** Test of \"add\".")
     doAddN(10)
@@ -89,7 +89,7 @@ class SpeedTest : Test
   }
 
   
-  Void testRemoveSpeed() 
+  Void estRemoveSpeed() 
   {
     echo("*** Test of \"remove\".")
     doRemoveN(100)
@@ -164,7 +164,7 @@ class SpeedTest : Test
     verifyAfterRemove(treeSet, n)
   }
 
-  Void testRemoveRandomSpeed() 
+  Void estRemoveRandomSpeed() 
   {
     echo("*** Test of \"remove\" at random.")
     doRemoveRandomN(100)

@@ -12,7 +12,7 @@ class JsonWriterTest : Test
   
   Void testMap()
   {
-    verifyJson("{}") { it.mapStart.mapEnd }
+    verifyJson("{}") { it.map {} }
     verifyJson(
       Str<|{
              "foo": 1
@@ -23,12 +23,28 @@ class JsonWriterTest : Test
   
   Void testList()
   {
-    verifyJson("[]") { it.listStart.listEnd }
+    verifyJson("[]") { it.list {} }
     verifyJson(
       Str<|[
              1,
              2
-           ]|>) { it.listStart.num(1).num(2).listEnd }
+           ]|>) { it.list{ it.num(1).num(2) } }
+  }
+  
+  Void testVisit()
+  {
+    verifyJson("[]") { it.visit([,]) }
+    verifyJson("{}") { it.visit([:]) }
+    verifyJson("null") { it.visit(null) }
+    verifyJson("\"null\"") { it.visit("null") }
+    verifyJson("52") { it.visit(52) }
+    verifyJson("5.5") { it.visit(5.5d) }
+    verifyJson("5.5") { it.visit(5.5f) }
+    verifyJson(Str<|[
+                      1,
+                      2,
+                      3
+                    ]|>) { it.visit([1,2,3]) }
   }
   
   Void testComposite()
@@ -68,7 +84,6 @@ class JsonWriterTest : Test
     buf := StrBuf()
     visitor := JsonWriter(buf.out)
     f(visitor)
-    echo(buf.toStr)
     verifyEq(expected, buf.toStr)
   }
 }

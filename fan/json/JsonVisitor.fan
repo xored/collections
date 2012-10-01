@@ -2,45 +2,88 @@ class VisitResult {}
 
 class JsonVisitor : ValVisitor
 {
-  virtual VisitResult nil() { primitive(null) }
-  virtual VisitResult bool(Bool val) { primitive(val) }
-  virtual VisitResult num(Num val) { primitive(val) }
-  virtual VisitResult str(Str val) { primitive(val )}
+  override final VisitResult visit(Obj? val) { super.visit(val) }
+  override final VisitResult nil() { super.nil }
+  override final VisitResult bool(Bool val) { super.bool(val) }
+  override final VisitResult num(Num val) { super.num(val) }
+  override final VisitResult str(Str val) { super.str(val) }
   
-  protected virtual VisitResult primitive(Obj? val) { done }
-
-  virtual VisitResult map(|MapVisitor| f) 
+  override final protected VisitResult primitive(Obj? val)
   {
-    visitMap(f)
-    return VisitResult()
+    super.primitive(val)
+    return done
   }
   
-  virtual VisitResult list(|ListVisitor| f)
+  override final VisitResult map(|MapVisitor| f) 
   {
-    visitList(f)
-    return VisitResult()
+    super.map(f)
+    return done
+  }
+  
+  override final VisitResult list(|ListVisitor| f)
+  {
+    super.list(f)
+    return done
   }
   
   virtual VisitResult done() { VisitResult() }
 }
 
-mixin ValVisitor
+class ValVisitor
 {
-  protected virtual MapVisitor mapStart() { MapVisitor() }
-  protected virtual ListVisitor listStart() { ListVisitor() }
+  protected virtual MapVisitor onMapStart() { MapVisitor() }
+  protected virtual ListVisitor onListStart() { ListVisitor() }
+  protected virtual Void onPrimitive(Obj? val) { }
+
+  virtual Obj nil() { primitive(null) }
+  virtual Obj bool(Bool val) { primitive(val) }
+  virtual Obj num(Num val) { primitive(val) }
+  virtual Obj str(Str val) { primitive(val) }
   
-  protected Void visitMap(|MapVisitor| f)
-  {
-    b := mapStart
+  virtual Obj map(|MapVisitor| f) 
+  { 
+    b := onMapStart
     f(b)
     b.mapEnd
+    return this
   }
   
-  protected Void visitList(|ListVisitor| f)
+  virtual Obj list(|ListVisitor| f)
   {
-    b := listStart
+    b := onListStart
     f(b)
-    b.listEnd
+    b.onListEnd
+    return this
+  }
+  
+    ** Allows to visit fantom-style json 
+  ** (i.e. a map of lists of maps of lists)
+  virtual Obj visit(Obj? obj)
+  {
+    if(obj == null) return nil
+    if(obj is Num) return num(obj)
+    if(obj is Str) return str(obj)
+    if(obj is Bool) return bool(obj)
+    if(obj is List) 
+    {
+      return list |lv| 
+      { 
+        ((Obj?[]) obj).each { lv = lv.visit(it) }
+      }
+    }
+    if(obj is Map)
+    {
+      return map |mv|
+      {
+        ((Map) obj).each |v,k| { mv = mv.key(k).visit(v) }
+      }
+    }
+    throw ArgErr("Can't visit $obj")
+  }
+  protected virtual Obj primitive(Obj? val) 
+  {
+    onPrimitive(val)
+    return this
   }
 }
 
@@ -55,45 +98,66 @@ class MapValVisitor : ValVisitor
   new make(MapVisitor parent) { this.parent = parent }
   protected MapVisitor parent
   
-  virtual MapVisitor nil() { primitive(null); return parent }
-  virtual MapVisitor bool(Bool val) { primitive(val); return parent }
-  virtual MapVisitor num(Num val) { primitive(val); return parent }
-  virtual MapVisitor str(Str val) { primitive(val); return parent }
+  override final MapVisitor nil() { primitive(null) }
+  override final MapVisitor bool(Bool val) { primitive(val) }
+  override final MapVisitor num(Num val) { primitive(val) }
+  override final MapVisitor str(Str val) { primitive(val) }
   
-  protected virtual Void primitive(Obj? val) {}
-  virtual MapVisitor list(|ListVisitor| f)
-  {
-    visitList(f)
+  override protected final MapVisitor primitive(Obj? val) 
+  { 
+    super.primitive(val)
     return parent
   }
   
-  virtual MapVisitor map(|MapVisitor| f)
+  override final MapVisitor list(|ListVisitor| f)
   {
-    visitMap(f)
+    super.list(f)
+    return parent
+  }
+  
+  override final MapVisitor map(|MapVisitor| f)
+  {
+    super.map(f)
+    return parent
+  }
+  
+  override final MapVisitor visit(Obj? val) 
+  { 
+    super.visit(val)
     return parent
   }
 }
 
 class ListVisitor : ValVisitor
 {
-  protected virtual Void listEnd() {}
+  protected virtual Void onListEnd() {}
   
-  virtual This nil() { primitive(null) }
-  virtual This bool(Bool val) { primitive(val) }
-  virtual This num(Num val) { primitive(val) }
-  virtual This str(Str val) { primitive(val )}
+  override final ListVisitor nil() { super.nil }
+  override final ListVisitor bool(Bool val) { super.bool(val) }
+  override final ListVisitor num(Num val) { super.num(val) }
+  override final ListVisitor str(Str val) { super.str(val) }
   
-  protected virtual This primitive(Obj? val) { this }
-
-  virtual ListVisitor map(|MapVisitor| f)
+  protected override final ListVisitor primitive(Obj? val) 
   {
-    visitMap(f)
+    super.primitive(val)
     return this
   }
   
-  virtual ListVisitor list(|ListVisitor| f)
+  override final ListVisitor visit(Obj? val)
   {
-    visitList(f)
+    super.visit(val)
+    return this
+  }
+  
+  override final ListVisitor map(|MapVisitor| f)
+  {
+    super.map(f)
+    return this
+  }
+  
+  override final ListVisitor list(|ListVisitor| f)
+  {
+    super.list(f)
     return this
   }
 }

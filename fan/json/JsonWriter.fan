@@ -9,19 +9,18 @@ class JsonWriter : JsonVisitor, BaseWriter
   override OutStream out
   protected override Str prefix := ""
   
-  override VisitResult primitive(Obj? val)
+  override protected Void onPrimitive(Obj? val)
   {
     printPrimitive(val)
-    return super.primitive(val)
   }
   
-  override protected MapVisitor mapStart()
+  override protected MapVisitor onMapStart()
   {
     printMapStart
     return MapWriter(out, this)
   }
   
-  override protected ListVisitor listStart()
+  override protected ListVisitor onListStart()
   {
     printListStart
     return ListWriter(out, this)
@@ -100,18 +99,18 @@ internal class MapValWriter : MapValVisitor, BaseWriter
   override OutStream out
   override protected Str prefix
 
-  override protected Void primitive(Obj? val) 
+  override protected Void onPrimitive(Obj? val) 
   { 
     printPrimitive(val) 
   }
   
-  override protected ListVisitor listStart()
+  override protected ListVisitor onListStart()
   {
     printListStart
     return ListWriter(out, this)
   }
   
-  override protected MapVisitor mapStart()
+  override protected MapVisitor onMapStart()
   {
     printMapStart
     return MapWriter(out, this)
@@ -135,28 +134,27 @@ internal class ListWriter : ListVisitor, BaseContainer
     this.parent = parent
   }
   
-  override This primitive(Obj? val)
+  override protected Void onPrimitive(Obj? val)
   {
     newline
     printPrimitive(val)
-    return this
   }
   
-  override protected MapVisitor mapStart()
+  override protected MapVisitor onMapStart()
   {
     newline
     printMapStart
     return MapWriter(out, this)
   }
   
-  override protected ListVisitor listStart()
+  override protected ListVisitor onListStart()
   {
     newline
     printListStart
     return ListWriter(out, this)
   }
   
-  override protected Void listEnd() 
+  override protected Void onListEnd() 
   {
     closeContainer
   }
