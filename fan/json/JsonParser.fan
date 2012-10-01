@@ -1,7 +1,13 @@
-
 class JsonParser
 {
-  Void parse(InStream in, JsonVisitor visitor)
+  new make(InStream in)
+  {
+    this.in = in
+  }
+  
+  InStream in
+  
+  Void parse(JsonVisitor visitor)
   {
     
   }

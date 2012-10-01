@@ -1,135 +1,163 @@
-** Does not close out stream
-class JsonWriter : JsonVisitor, JsonConsts
+
+class JsonWriter : JsonVisitor, BaseWriter
 {
-  new make(OutStream out) : super(null) {
+  new make(OutStream out) 
+  {
     this.out = out
-    this.writer = BaseWriter(out)
   }
   
-  private BaseWriter writer
+  override OutStream out
+  protected override Str prefix := ""
   
-  OutStream out { private set; }
-  
-  override JsonVisitor nil() { writer = writer.nil; return this }
-  override JsonVisitor bool(Bool val) { writer = writer.bool(val); return this }
-  override JsonVisitor num(Num val) { writer = writer.num(val); return this }
-  override JsonVisitor str(Str val) { writer = writer.str(val); return this }
-
-  override JsonVisitor mapStart() { writer = writer.mapStart; return this }
-  override JsonVisitor mapKey(Str key) { writer = writer.mapKey(key); return this }
-  override JsonVisitor mapEnd() { writer = writer.mapEnd; return this }
-  override JsonVisitor listStart() { writer = writer.listStart; return this }
-  override JsonVisitor listEnd() { writer = writer.listEnd; return this }
-}
-
-internal class BaseWriter : JsonVisitor
-{
-  new make(OutStream out) : super(null) { this.out = out }
-  
-  OutStream out { private set; }
-  
-  override JsonVisitor nil() { primitive(null) }
-  override JsonVisitor bool(Bool val) { primitive(val) }
-  override JsonVisitor num(Num val) { primitive(val) }
-  override JsonVisitor str(Str val) { primitive(val.toCode) }
-  
-  JsonVisitor primitive(Obj? obj) 
-  { 
-    valPrefix
-    out.print(obj)
-    return this
+  override VisitResult primitive(Obj? val)
+  {
+    printPrimitive(val)
+    return super.primitive(val)
   }
-
-  final override JsonVisitor mapStart() 
-  { 
-    valPrefix
-    out.writeChar(JsonConsts.objectStart)
+  
+  override protected MapVisitor mapStart()
+  {
+    printMapStart
     return MapWriter(out, this)
   }
   
-  override JsonVisitor listStart()
+  override protected ListVisitor listStart()
   {
-    valPrefix
-    out.writeChar(JsonConsts.arrayStart)
+    printListStart
     return ListWriter(out, this)
   }
-  
-  
-  override JsonVisitor mapEnd() { throw stateErr("Not in map") }
-  override JsonVisitor mapKey(Str key) { throw stateErr("Not in map") }
-  override JsonVisitor listEnd() { throw stateErr("Not in list") }
-  
-  protected Str prefix := ""
-  protected virtual Void valPrefix() {}
-  
-  Err stateErr(Str msg := "Illegal state") { Err(msg) }
 }
 
-internal abstract class ContainerWriter : BaseWriter
+mixin BaseWriter
 {
-  new make(OutStream out, BaseWriter parent, Int closeChar) : super(out) 
-  { 
-    this.parent = parent 
-    this.prefix = parent.prefix + "  "
-    this.closeChar = closeChar
-  } 
+  protected abstract Str prefix()
+  abstract OutStream out
+
+  protected Void printPrimitive(Obj? val)
+  {
+    out.print(val is Str ? ((Str)val).toCode : val)
+  }
   
-  protected BaseWriter parent
-  protected Bool isEmpty := true
-  protected Int closeChar
-  
-  protected override Void valPrefix() { newline }
+  protected Void printListStart() { out.writeChar(JsonConsts.arrayStart) }
+  protected Void printMapStart() { out.writeChar(JsonConsts.objectStart) }
+}
+
+mixin BaseContainer : BaseWriter
+{
+  protected abstract Bool isEmpty()
+  protected abstract Void notEmpty()
+  protected abstract Int closeChar()
+  protected abstract BaseWriter parent()
   
   protected Void newline()
   {
     if(!isEmpty) out.writeChar(JsonConsts.comma)
-    else isEmpty = false
+    else notEmpty
     out.printLine.print(prefix)
   }
-  
-  protected virtual JsonVisitor containerEnd()
+
+  protected Void closeContainer()
   {
     if(!isEmpty) out.printLine.print(parent.prefix)
     out.writeChar(closeChar)
-    return parent
   }
-  
 }
 
-internal class MapWriter : ContainerWriter 
+internal class MapWriter : MapVisitor, BaseContainer
 {
-  new make(OutStream out, BaseWriter parent) : super(out, parent, JsonConsts.objectEnd) {}
-  
-  Bool keyVisited := false
-  
-  
-  override protected Void valPrefix()
+  override protected Str prefix
+  override OutStream out
+  override protected Bool isEmpty := true
+  override protected Void notEmpty() { isEmpty = false }
+  private MapValWriter valWriter 
+  override protected BaseWriter parent
+  override protected Int closeChar := JsonConsts.objectEnd
+  new make(OutStream out, BaseWriter parent) 
   {
-    if(!keyVisited) throw stateErr("key must be visited first")
-    keyVisited = false
-    out.writeChar(JsonConsts.colon).writeChar(' ')
+    this.out = out
+    this.prefix = parent.prefix + "  "
+    this.valWriter = MapValWriter(out, this)
+    this.parent = parent
   }
   
-  override JsonVisitor mapKey(Str key) 
+  override protected Void mapEnd() { closeContainer }
+  
+  override MapValVisitor key(Str val)
   {
-    if(keyVisited) throw stateErr("key is already visited")
-    keyVisited = true
     newline
-    out.print(key.toCode)
+    out.print(val.toCode).writeChar(JsonConsts.colon).writeChar(' ')
+    return valWriter
+  }
+}
+
+internal class MapValWriter : MapValVisitor, BaseWriter
+{
+  new make(OutStream out, MapWriter parent) : super(parent) 
+  {
+    this.out = out
+    this.prefix = parent.prefix
+  }
+  override OutStream out
+  override protected Str prefix
+
+  override protected Void primitive(Obj? val) 
+  { 
+    printPrimitive(val) 
+  }
+  
+  override protected ListVisitor listStart()
+  {
+    printListStart
+    return ListWriter(out, this)
+  }
+  
+  override protected MapVisitor mapStart()
+  {
+    printMapStart
+    return MapWriter(out, this)
+  }
+
+}
+
+internal class ListWriter : ListVisitor, BaseContainer
+{
+  override OutStream out
+  override protected Str prefix
+  override protected BaseWriter parent
+  override protected Bool isEmpty := true
+  override protected Void notEmpty() { isEmpty = false }
+  override protected Int closeChar := JsonConsts.arrayEnd
+  
+  new make(OutStream out, BaseWriter parent)
+  {
+    this.prefix = parent.prefix + "  "
+    this.out = out
+    this.parent = parent
+  }
+  
+  override This primitive(Obj? val)
+  {
+    newline
+    printPrimitive(val)
     return this
   }
   
-  override JsonVisitor mapEnd()
+  override protected MapVisitor mapStart()
   {
-    if(keyVisited) throw stateErr("Can't close map when key visited")
-    return containerEnd
+    newline
+    printMapStart
+    return MapWriter(out, this)
   }
-
-}
-
-internal class ListWriter : ContainerWriter
-{
-  new make(OutStream out, BaseWriter parent) : super(out, parent, JsonConsts.arrayEnd) {}
   
-  override JsonVisitor listEnd() { containerEnd }
+  override protected ListVisitor listStart()
+  {
+    newline
+    printListStart
+    return ListWriter(out, this)
+  }
+  
+  override protected Void listEnd() 
+  {
+    closeContainer
+  }
 }
