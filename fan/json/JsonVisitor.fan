@@ -31,8 +31,8 @@ class JsonVisitor : ValVisitor
 
 class ValVisitor
 {
-  protected virtual MapVisitor onMapStart() { MapVisitor() }
-  protected virtual ListVisitor onListStart() { ListVisitor() }
+  protected virtual MapVisitor? onMapStart() { null }
+  protected virtual ListVisitor? onListStart() { null }
   protected virtual Void onPrimitive(Obj? val) { }
 
   virtual Obj nil() { primitive(null) }
@@ -43,16 +43,22 @@ class ValVisitor
   virtual Obj map(|MapVisitor| f) 
   { 
     b := onMapStart
-    f(b)
-    b.onMapEnd
+    if(b != null) 
+    {
+      f(b)
+      b.onMapEnd
+    }
     return this
   }
   
   virtual Obj list(|ListVisitor| f)
   {
     b := onListStart
-    f(b)
-    b.onListEnd
+    if(b != null)
+    {
+      f(b)
+      b.onListEnd
+    }
     return this
   }
   

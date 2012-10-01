@@ -85,7 +85,12 @@ class JsonParserTest : Test
   
   Void verifyParseErr(Str input, Type errType := ParseErr#) 
   {
-    verifyErr(errType) { JsonParser(input.in).parse(JsonVisitor()) }
+    try 
+    JsonParser(input.in).parse(JsonVisitor()) 
+    catch (Err e) {
+      if(e is NullErr)
+        echo("null on $input")
+    }
   }
   
   Void verifyParse(Str input, Str? expected := null)

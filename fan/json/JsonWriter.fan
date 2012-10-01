@@ -14,13 +14,13 @@ class JsonWriter : JsonVisitor, BaseWriter
     printPrimitive(val)
   }
   
-  override protected MapVisitor onMapStart()
+  override protected MapVisitor? onMapStart()
   {
     printMapStart
     return MapWriter(out, this)
   }
   
-  override protected ListVisitor onListStart()
+  override protected ListVisitor? onListStart()
   {
     printListStart
     return ListWriter(out, this)
@@ -104,13 +104,13 @@ internal class MapValWriter : MapValVisitor, BaseWriter
     printPrimitive(val) 
   }
   
-  override protected ListVisitor onListStart()
+  override protected ListVisitor? onListStart()
   {
     printListStart
     return ListWriter(out, this)
   }
   
-  override protected MapVisitor onMapStart()
+  override protected MapVisitor? onMapStart()
   {
     printMapStart
     return MapWriter(out, this)
@@ -140,14 +140,14 @@ internal class ListWriter : ListVisitor, BaseContainer
     printPrimitive(val)
   }
   
-  override protected MapVisitor onMapStart()
+  override protected MapVisitor? onMapStart()
   {
     newline
     printMapStart
     return MapWriter(out, this)
   }
   
-  override protected ListVisitor onListStart()
+  override protected ListVisitor? onListStart()
   {
     newline
     printListStart

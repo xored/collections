@@ -13,9 +13,9 @@ class JsonBuilder : JsonVisitor
     result.result = val
   }
   
-  override MapVisitor onMapStart() { MapBuilder { result.result = it } }
+  override MapVisitor? onMapStart() { MapBuilder { result.result = it } }
 
-  override ListVisitor onListStart() { ListBuilder { result.result = it } }
+  override ListVisitor? onListStart() { ListBuilder { result.result = it } }
   
   override BuildResult done() { result }
 }
@@ -57,8 +57,8 @@ class MapValBuilder : MapValVisitor
     result[key] = obj
   }
   
-  override MapVisitor onMapStart() { MapBuilder { result[key] = it } }
-  override ListVisitor onListStart() { ListBuilder { result[key] = it } }
+  override MapVisitor? onMapStart() { MapBuilder { result[key] = it } }
+  override ListVisitor? onListStart() { ListBuilder { result[key] = it } }
 }
 
 class ListBuilder : ListVisitor
@@ -74,6 +74,6 @@ class ListBuilder : ListVisitor
   }
   
   override protected Void onListEnd() { onResult(result) }
-  override protected MapVisitor onMapStart() { MapBuilder { result.add(it) } }
-  override protected ListVisitor onListStart() { ListBuilder { result.add(it) } }
+  override protected MapVisitor? onMapStart() { MapBuilder { result.add(it) } }
+  override protected ListVisitor? onListStart() { ListBuilder { result.add(it) } }
 }

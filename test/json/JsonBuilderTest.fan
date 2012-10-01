@@ -129,7 +129,7 @@ class MyResult : VisitResult
 }
 class IdFinder : JsonVisitor
 {
-  override protected MapVisitor onMapStart()
+  override protected MapVisitor? onMapStart()
   {
     IdFindingMap { done.result = it }
   }
