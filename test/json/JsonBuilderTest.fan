@@ -1,5 +1,5 @@
 
-class JsonBuilderTest : Test
+class JsonBuilderTest : EquivTest
 {
   Void testBuildPrimitives()
   {
@@ -66,13 +66,14 @@ class JsonBuilderTest : Test
   
   Void test1()
   {
-    json := JsonVisitor()
-    json.map |m| {
+     verifyBuild(["foo":32, "bar":[3,"s",true]]) |json| { 
+     json.map |m| {
       m.key("foo").num(32)
       m.key("bar").list |l| 
       { 
         l.num(3).str("s").bool(true) 
       }
+    } 
     }
   }
   
@@ -118,7 +119,7 @@ class JsonBuilderTest : Test
   {
     builder := JsonBuilder()
     f(builder)
-    verifyEq(expected, builder.done.result)
+    verifyEquiv(expected, builder.done.result)
   }
 }
 

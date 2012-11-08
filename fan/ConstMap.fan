@@ -127,6 +127,14 @@ internal class Leaf
 @Js
 const mixin ConstMap: ConstColl
 {
+  static const ConstMap emptyHashMap := ConstHashMap.empty
+  static ConstMap hashMap(Map map) 
+  {
+    result := emptyHashMap
+    map.each |v,k| { result = result.set(k,v) }
+    return result
+  }
+  
   //////////////////////////////////////////////////////////////////////////
   // Abstract methods
   //////////////////////////////////////////////////////////////////////////

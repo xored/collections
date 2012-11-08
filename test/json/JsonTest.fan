@@ -4,6 +4,16 @@
 //
 class JsonTest : Test
 {
+  Void testFromStr() 
+  {
+    json := Json.fromStr(
+      Str<|{
+            "foo":1,
+            "bar":["a","b","c"]
+           }|>)
+    verifyEq(json->foo, 1)
+    verifyEq(json->bar->toList, Obj?["a", "b", "c"])
+  }
   Void testElem()
   {
     json := Json.fromVal(1)

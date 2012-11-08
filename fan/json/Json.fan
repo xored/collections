@@ -2,7 +2,7 @@
 // Copyright (c) 2010 xored software, Inc.
 // Licensed under Eclipse Public License version 1.0
 //
-using util
+
 
 **
 ** Mixin for a JSON object. 
@@ -82,7 +82,12 @@ mixin Json
   **
   ** Creates a JSON object from stream
   ** 
-  static ConstJson fromStream(InStream in) { fromVal(JsonInStream(in).readJson) }
+  static ConstJson fromStream(InStream in) 
+  { 
+    visitor := ConstJsonBuilder();
+    JsonParser(in).parse(visitor)
+    return fromVal(visitor.result.result)
+  }
   **
   ** Creates a JSON object from string
   ** 
