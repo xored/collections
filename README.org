@@ -1,0 +1,3 @@
+* Collections
+  - Pure fantom implementation of persistent maps and lists
+  - Json objects
